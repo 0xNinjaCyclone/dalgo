@@ -170,13 +170,13 @@ int list_search(List *l, int item)
 
 void list_reverse(List *l)
 {
-    int swappper, nSize = list_size(l) - 1;
+    int swapper, nSize = list_size(l) - 1;
 
     for (size_t i = 0; i <= nSize / 2; i++)
     {
-        swappper = l->values[nSize - i];
+        swapper = l->values[nSize - i];
         l->values[nSize - i] = l->values[i];
-        l->values[i] = swappper;
+        l->values[i] = swapper;
     }
     
 }

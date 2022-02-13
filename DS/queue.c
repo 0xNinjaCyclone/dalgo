@@ -52,7 +52,7 @@ int queue_size(Queue *q)
 
 int queue_empty(Queue *q)
 {
-    return queue_size(q) == 0;
+    return !q || queue_size(q) == 0;
 }
 
 int queue_full(Queue *q)

@@ -50,7 +50,7 @@ int stack_size(STACK *s)
 
 int stack_empty(STACK *s)
 {
-    return s->top == -1;
+    return !s || s->top == -1;
 }
 
 int stack_full(STACK *s)

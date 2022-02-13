@@ -52,6 +52,7 @@ void insertion_sort(int arr[], size_t nSize)
         key = arr[i];
         idx = i - 1;
 
+        /* Shift elements from left to right to put the item in the correct position */
         while (idx >= 0 && arr[idx] > key) 
         {
             arr[idx + 1] = arr[idx];

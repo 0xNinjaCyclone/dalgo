@@ -23,7 +23,7 @@ int llist_size(List *l)
 
 int llist_empty(List *l)
 {
-    return !l || !l->first || l->size == 0;
+    return !l || !l->first || llist_size(l) == 0;
 }
 
 int llist_insert(List *l, int item)
@@ -78,7 +78,7 @@ int llist_insertAt(List *l, int idx, int item)
 {
     LNode *curr, *temp;
 
-    if (idx < 0 || idx >= llist_size(l))
+    if (idx < 0 || idx > llist_size(l))
         return 0;
 
     if (idx == 0)
@@ -301,6 +301,11 @@ void llist_clear(List *l)
 {
     while (!llist_empty(l))
     {
+        /* 
+            (deleteAtFirst) is the best function to do that 
+            because its complexity is (Big O(1)) but (delete || deleteAt) is (Big O(n))
+        */
+        
         llist_deleteAtFirst(l);
     }
     
