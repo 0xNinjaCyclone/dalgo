@@ -12,17 +12,17 @@ int main(void)
 {
     STACK *mystack = NULL; /* We must set pointer to NULL */
     
-    push(&mystack,5);
-    pop(&mystack); /* Remove last item */
-    push(&mystack,15);
-    push(&mystack,5);
-    push(&mystack,7);
-    push(&mystack,9);
-    push(&mystack,150);
+    lstack_push(&mystack,5);
+    lstack_pop(&mystack); /* Remove last item */
+    lstack_push(&mystack,15);
+    lstack_push(&mystack,5);
+    lstack_push(&mystack,7);
+    lstack_push(&mystack,9);
+    lstack_push(&mystack,150);
 
-    print_values(mystack);
+    lstack_print(mystack);
 
-    printf("\nTop item = %d, Size = %d\n",getitem(mystack),lstack_size(mystack));
+    printf("\nTop item = %d, Size = %d\n",lstack_getitem(mystack),lstack_size(mystack));
 
     lstack_cleanup(&mystack); /* We had better call this func */
 

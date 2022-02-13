@@ -15,12 +15,12 @@ struct stack
     int value;
 };
 
-void push(STACK **s,int item);
-void pop(STACK **s);
+void lstack_push(STACK **s,int item);
+void lstack_pop(STACK **s);
 int lstack_size(STACK *s);
-int empty(STACK *s);
-int getitem(STACK *s);
-void print_values(STACK *s);
+int lstack_empty(STACK *s);
+int lstack_getitem(STACK *s);
+void lstack_print(STACK *s);
 void lstack_cleanup(STACK **s);
 
 #endif

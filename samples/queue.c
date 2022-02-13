@@ -15,20 +15,20 @@ int main(void)
 
     while (1)
     {
-        if (full(myqueue))
+        if (queue_full(myqueue))
         {
-            printf("\nQueue is full !!\n");
+            printf("\nQueue is full !!\n\n");
             break;
         } else {
             printf("Enter a number value :");
             scanf("%d",&value);
-            enqueue(myqueue,value);
+            queue_en(myqueue,value);
         }
 
     }
 
-    print_values(myqueue);
-    printf("\nFront value = %d, Size = %d\n",getitem(myqueue),queue_size(myqueue));
+    queue_print(myqueue);
+    printf("\nFront value = %d, Size = %d\n",queue_getitem(myqueue),queue_size(myqueue));
 
     queue_cleanup(&myqueue); /* we had better call this func */
     return 0;

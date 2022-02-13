@@ -7,23 +7,58 @@
 
 #include "sort.h"
 
-
-void linear_sort(int arr[],size_t nSize)
+void selection_sort(int arr[], size_t nSize)
 {
-    int swaper, counter = 0;
+    int idx, swapper;
 
-    do
+    for (size_t i = 0; i < nSize - 1; i++)
+    {
+        idx = i;
+
+        for (size_t j = i + 1; j < nSize; j++)
+            if (arr[idx] > arr[j])
+                idx = j;
+
+        swapper = arr[i];
+        arr[i] = arr[idx];
+        arr[idx] = swapper;
+    }
+}
+
+void bubble_sort(int arr[], size_t nSize)
+{
+    int swapper, counter = 0;
+
+    while (++counter < nSize) 
     {  
-        for (size_t i = 0; i < nSize; i++)
-        {
+        for (size_t i = 0; i < nSize - counter; i++)
             if (arr[i] > arr[i + 1])
             {
-                swaper = arr[i];
+                swapper = arr[i];
                 arr[i] = arr[i + 1];
-                arr[i + 1] = swaper;
+                arr[i + 1] = swapper;
             }
-        }
         
-    } while (++counter < nSize);
+    }
     
+}
+
+void insertion_sort(int arr[], size_t nSize)
+{
+    int key, idx;
+
+    for (size_t i = 1; i < nSize; i++)
+    {
+        key = arr[i];
+        idx = i - 1;
+
+        while (idx >= 0 && arr[idx] > key) 
+        {
+            arr[idx + 1] = arr[idx];
+            idx--;
+        }
+
+        arr[idx + 1] = key;
+        
+    }
 }

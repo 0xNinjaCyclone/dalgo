@@ -20,14 +20,17 @@ STACK *stack_init(int size) {
         if (s->values) {
             return s;
         } else {
-            goto BADMEMALLOC;
+            /* Free handler */
+            free(s);
+
+            goto OOM;
         }
     } else {
-        goto BADMEMALLOC;
+        goto OOM;
     }
 
-    BADMEMALLOC :
-        fprintf(stderr,"Failed in memory allocation");
+    OOM :
+        fprintf(stderr,"Out Of Memory");
         exit(EXIT_FAILURE);
 }
 
@@ -45,37 +48,41 @@ int stack_size(STACK *s)
     return s->top + 1;
 }
 
-int empty(STACK *s)
+int stack_empty(STACK *s)
 {
     return s->top == -1;
 }
 
-int full(STACK *s)
+int stack_full(STACK *s)
 {
     return s->top >= (s->maxsize - 1);
 }
 
-int push(STACK *s,int item)
+int stack_push(STACK *s,int item)
 {
-    if(full(s))
+    if(stack_full(s))
         return 0;
 
-    else 
-        return ((s->values[++s->top] = item) % 1) + 1; /* return 1 */
+    else {
+        s->values[++s->top] = item;
+        return 1;
+    } 
 }
 
-int pop(STACK *s)
+int stack_pop(STACK *s)
 {
-    if(empty(s))
+    if(stack_empty(s))
         return 0;
     
-    else
-        return (s->top-- % 1) + 1; /* return 1 */
+    else {
+        s->top--;
+        return 1;
+    }
 }
 
-int getitem(STACK *s)
+int stack_getitem(STACK *s)
 {
-    if (!empty(s))
+    if (!stack_empty(s))
         return s->values[s->top];
 
     else {
@@ -91,11 +98,11 @@ int getitem(STACK *s)
     }
 }
 
-void print_values(STACK *s)
+void stack_print(STACK *s)
 {
     int temp = s->top;
 
-    while (!empty(s))
+    while (!stack_empty(s))
     {
         printf("Value %d => %d\n",s->top,s->values[s->top]);
         s->top--;

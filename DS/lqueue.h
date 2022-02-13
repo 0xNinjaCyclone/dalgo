@@ -13,7 +13,7 @@ struct Node
     int value;
 };
 
-typedef struct QUEUE
+typedef struct
 {
     QNode *rear;
     QNode *front;
@@ -23,12 +23,12 @@ typedef struct QUEUE
 
 Queue *lqueue_init();
 int lqueue_size(Queue *q);
-void enqueue(Queue *q,int item);
-void dequeue(Queue *q);
-int empty(Queue *q);
-int getitem(Queue *q);
-void print_values(Queue *q);
+void lqueue_en(Queue *q,int item);
+void lqueue_de(Queue *q);
+int lqueue_empty(Queue *q);
+int lqueue_getitem(Queue *q);
+void lqueue_print(Queue *q);
 void lqueue_cleanup(Queue **q);
-void malloc_failed();
+void lqueue_oom();
 
 #endif

@@ -23,19 +23,18 @@ Queue *queue_init(int size)
         if (q->values) {
             return q;
         } else {
-            /* free queue handler if malloc values failed */
+            /* Free queue handler if malloc values failed */
 
             free(q);
-            q = NULL;
-            goto BADMEMALLOC;
+            goto OOM;
         }
     } else {
-        goto BADMEMALLOC;
+        goto OOM;
     }
     
 
-    BADMEMALLOC :
-        fprintf(stderr,"Failed in memory allocation");
+    OOM :
+        fprintf(stderr,"Out Of Memory");
         exit(EXIT_FAILURE);
 }
 
@@ -51,45 +50,49 @@ int queue_size(Queue *q)
     return q->counter;
 }
 
-int empty(Queue *q)
+int queue_empty(Queue *q)
 {
     return queue_size(q) == 0;
 }
 
-int full(Queue *q)
+int queue_full(Queue *q)
 {
     return queue_size(q) == q->maxsize;
 }
 
-int enqueue(Queue *q,int item)
+int queue_en(Queue *q,int item)
 {
     /* return 1 if success else return 0 */
     
-    if (full(q))
+    if (queue_full(q))
         return 0;
 
     else {
         q->counter++;
-        return ((q->values[++q->rear] = item) % 1) + 1; /* return 1 */
+        q->values[++q->rear] = item;
+        
+        return 1;
     }
 }
 
-int dequeue(Queue *q)
+int queue_de(Queue *q)
 {
     /* return 1 if succeed else return 0 */
     
-    if (empty(q))
+    if (queue_empty(q))
         return 0;
     
     else {
         q->counter--;
-        return (q->front++ % 1) + 1; /* return 1 */
+        q->front++;
+
+        return 1;
     }
 }
 
-int getitem(Queue *q)
+int queue_getitem(Queue *q)
 {
-    if (!empty(q))
+    if (!queue_empty(q))
         return q->values[q->front];
 
     else {
@@ -106,7 +109,7 @@ int getitem(Queue *q)
     }
 }
 
-void print_values(Queue *q)
+void queue_print(Queue *q)
 {
     for (int i = 0; i < queue_size(q); i++)
     {

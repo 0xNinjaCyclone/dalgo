@@ -13,7 +13,7 @@ Queue *lqueue_init()
     Queue *q = (Queue *) malloc(sizeof(Queue));
 
     if (!q) 
-        malloc_failed();
+        lqueue_oom();
 
     return q;
 }
@@ -23,12 +23,12 @@ int lqueue_size(Queue *q)
     return q->counter + 1;
 }
 
-int empty(Queue *q)
+int lqueue_empty(Queue *q)
 {
     return !q || !q->front;
 }
 
-void enqueue(Queue *q,int item)
+void lqueue_en(Queue *q,int item)
 {
     QNode *temp = (QNode *) malloc(sizeof(QNode));
 
@@ -36,7 +36,7 @@ void enqueue(Queue *q,int item)
         temp->value = item;
         temp->next = NULL;
 
-        if (empty(q))
+        if (lqueue_empty(q))
         {
             q->counter = 0;
             q->front = q->rear = temp;
@@ -44,20 +44,20 @@ void enqueue(Queue *q,int item)
             q->counter++;
             
             /* Change rear position */
-            q->rear = q->rear->next = temp;   
+            q->rear = q->rear->next = temp;
         }
     } else {
         lqueue_cleanup(&q);
-        malloc_failed();
+        lqueue_oom();
     }
 
 }
 
-void dequeue(Queue *q)
+void lqueue_de(Queue *q)
 {
     QNode *temp;
 
-    if (!empty(q))
+    if (!lqueue_empty(q))
     {
         temp = q->front;
         q->front = q->front->next;
@@ -65,7 +65,7 @@ void dequeue(Queue *q)
         temp->next = NULL;
         free(temp);
 
-        if (empty(q)) /* if Queue becomes empty */
+        if (lqueue_empty(q)) /* if Queue becomes empty */
         {
             /* Set rear value to null because last front and rear is same */
             q->rear = NULL;
@@ -76,9 +76,9 @@ void dequeue(Queue *q)
 void lqueue_cleanup(Queue **q)
 {
 
-    while ((*q)->front) /* free all nodes */
+    while (!lqueue_empty(*q)) /* free all nodes */
     {
-        dequeue(*q);
+        lqueue_de(*q);
     }
 
     /* free Queue handler after free all nodes */
@@ -88,9 +88,9 @@ void lqueue_cleanup(Queue **q)
     (*q) = NULL;
 }
 
-int getitem(Queue *q)
+int lqueue_getitem(Queue *q)
 {
-    if (!empty(q))
+    if (!lqueue_empty(q))
         return q->front->value;
     else {
         /* Error case */
@@ -101,7 +101,7 @@ int getitem(Queue *q)
     }
 }
 
-void print_values(Queue *q)
+void lqueue_print(Queue *q)
 {
     QNode *temp = q->front;
 
@@ -112,8 +112,8 @@ void print_values(Queue *q)
     }
 }
 
-void malloc_failed()
+void lqueue_oom()
 {
-    fprintf(stderr,"Failed in memory allocation");
+    fprintf(stderr,"Out Of Memory");
     exit(EXIT_FAILURE);
 }

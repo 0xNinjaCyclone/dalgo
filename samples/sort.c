@@ -31,13 +31,13 @@ int main(void)
     size_t nSize = sizeof(arr) / sizeof(int);
 
     printf("Original array = ");
-    print_arr(arr,nSize);
+    print_arr(arr, nSize);
 
-    /* Sort array*/
-    linear_sort(arr,nSize);
+    /* Sort array */
+    bubble_sort(arr, nSize);
 
     printf("Sorted array   = ");
-    print_arr(arr,nSize);
+    print_arr(arr, nSize);
 
     return 0;
 }

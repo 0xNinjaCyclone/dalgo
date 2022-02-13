@@ -14,14 +14,14 @@ int main(void)
 {
     Queue *myqueue = lqueue_init(); /* Initiate Linked Queue */
 
-    enqueue(myqueue,1);
-    enqueue(myqueue,21);
-    enqueue(myqueue,13);
-    dequeue(myqueue); /* Remove first item */
-    enqueue(myqueue,14);
+    lqueue_en(myqueue,1);
+    lqueue_en(myqueue,21);
+    lqueue_en(myqueue,13);
+    lqueue_de(myqueue); /* Remove first item */
+    lqueue_en(myqueue,14);
 
-    print_values(myqueue);
-    printf("\nFront = %d, Rear = %d, Size = %d\n",getitem(myqueue),
+    lqueue_print(myqueue);
+    printf("\nFront = %d, Rear = %d, Size = %d\n",lqueue_getitem(myqueue),
                             myqueue->rear->value,lqueue_size(myqueue));
 
     lqueue_cleanup(&myqueue); /* We had better call this func */

@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
-void linear_sort(int arr[],size_t nSize);
+void selection_sort(int arr[], size_t nSize);
+void bubble_sort(int arr[], size_t nSize);
+void insertion_sort(int arr[], size_t nSize);
 
 #endif

@@ -15,20 +15,20 @@ int main() {
     
     while (1)
     {
-        if (full(mystack))
+        if (stack_full(mystack))
         {
-            printf("Stack is full !!\n");
+            printf("\nStack is full !!\n\n");
             break;
         } else {
             printf("Enter a number value :");
             scanf("%d",&value);
-            push(mystack,value);
+            stack_push(mystack,value);
         }
     }
 
-    print_values(mystack);
+    stack_print(mystack);
     printf("\nTop item = %d, Top value = %d, Size = %d\n",
-            getitem(mystack),mystack->top,stack_size(mystack));
+            stack_getitem(mystack), mystack->top, stack_size(mystack));
 
     stack_cleanup(&mystack); /* we had better call this func */
     return 0;

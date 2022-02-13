@@ -9,12 +9,12 @@
 #include "lstack.h"
 
 
-void push(STACK **s,int item)
+void lstack_push(STACK **s,int item)
 {
     STACK *temp = (STACK *) malloc(sizeof(STACK));
 
     if (temp) {
-        if (empty(*s))   
+        if (lstack_empty(*s))   
             temp->counter = 0;
 
         else 
@@ -24,7 +24,7 @@ void push(STACK **s,int item)
         temp->next = *s;
         (*s) = temp;
     } else {
-        if (!empty(*s)) {
+        if (!lstack_empty(*s)) {
             /* stack initiated before, we must call cleanup func */
 
             lstack_cleanup(s);
@@ -41,11 +41,11 @@ void push(STACK **s,int item)
 
 }
 
-void pop(STACK **s)
+void lstack_pop(STACK **s)
 {
     STACK *temp;
 
-    if(!empty(*s))
+    if(!lstack_empty(*s))
     {
         temp = *s;
         (*s) = (*s)->next;
@@ -55,18 +55,17 @@ void pop(STACK **s)
 }
 
 int lstack_size(STACK *s) {
-    //printf("%p\n",s);
     return s->counter + 1;
 }
 
-int empty(STACK *s)
+int lstack_empty(STACK *s)
 {
     return s == NULL;
 }
 
-int getitem(STACK *s)
+int lstack_getitem(STACK *s)
 {
-    if (empty(s)) {
+    if (lstack_empty(s)) {
         fprintf(stderr,"Error Can't getitem, Linked Stack is empty");
         exit(EXIT_FAILURE);
     } else {
@@ -75,13 +74,13 @@ int getitem(STACK *s)
     
 }
 
-void print_values(STACK *s)
+void lstack_print(STACK *s)
 {
     STACK *temp = s;
 
-    while (!empty(temp))
+    while (!lstack_empty(temp))
     {
-        printf("Value %d => %d\n",temp->counter,getitem(temp));
+        printf("Value %d => %d\n",temp->counter,lstack_getitem(temp));
         temp = temp->next;    
     }
     
@@ -89,9 +88,9 @@ void print_values(STACK *s)
 
 void lstack_cleanup(STACK **s)
 {
-    while(!empty(*s))
+    while(!lstack_empty(*s))
     {
-        pop(s);
+        lstack_pop(s);
     }
 
 }
