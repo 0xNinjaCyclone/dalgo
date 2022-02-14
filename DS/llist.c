@@ -133,8 +133,10 @@ int llist_updateAt(List *l, int idx, int item)
         }
 
         targetNode->value = item;
-        return 1;
+
     }
+
+    return 1;
 }
 
 int llist_getitemAt(List *l, int idx)
