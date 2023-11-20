@@ -22,7 +22,7 @@ void main(void)
     /* Append at the first of the list */
     llist_insertAtFirst(mylist, 5);
 
-    /* Append at specified postions */
+    /* Append at specified positions */
     llist_insertAt(mylist, 4, 40);
     llist_insertAt(mylist, 0, 0);
 
@@ -36,7 +36,7 @@ void main(void)
     /* Delete the item in first */
     llist_deleteAtFirst(mylist);
 
-    /* Delete the item in a specified postion */
+    /* Delete the item in a specified position */
     llist_deleteAt(mylist, 2);
 
     puts("Print :");
@@ -52,11 +52,11 @@ void main(void)
     printf("\nsize = %d, item(0) = %d\n", llist_size(mylist), llist_getitemAt(mylist, 0));
 
     /* Search in the list */
-    value = 10; /* Find the postion of this value */
-    printf("\n(Search) Find the postion of %d\n", value);
+    value = 10; /* Find the position of this value */
+    printf("\n(Search) Find the position of %d\n", value);
 
     if ((found = llist_search(mylist, value)) != -1)
-        printf("The postion of %d is %d\n", value, found);
+        printf("The position of %d is %d\n", value, found);
 
     else
         printf("Value %d does not exist in the list\n", value);

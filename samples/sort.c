@@ -3,41 +3,27 @@
     
     Author      => Abdallah Mohamed Elsharif
     Date        => 20-12-2021
-    Compile     => gcc -I../Algo/ ../Algo/sort.c sort.c -o sort
+    Compile     => gcc -I../Algo/ ../Algo/helpers.c ../Algo/move.c ../Algo/sort.c sort.c -o sort
 */
 
 #include "sort.h"
+#include "helpers.h"
 
-void print_arr(int arr[],int nSize) 
-{
-    printf("[");
-    for (size_t i = 0; i < nSize; i++)
-    {
-        printf("%d",arr[i]);
-
-        if (i == nSize - 1) /* Last item */
-            continue;
-
-        else
-            printf(",");
-    }  
-
-    printf("]\n");
-}
+void print_number(void *n) { printf("%d", *(int *) n); }
 
 int main(void) 
 {
     int arr[] = {1,7,15,2,64,82,1,46,48,01,23,14,5,36,3};
-    size_t nSize = sizeof(arr) / sizeof(int);
+    size_t lSize = sizeof(arr) / sizeof(int);
 
     printf("Original array = ");
-    print_arr(arr, nSize);
+    PrintArray(arr, lSize, sizeof(int), print_number);
 
     /* Sort array */
-    bubble_sort(arr, nSize);
+    selection_sort(arr, lSize, sizeof(int), IntCmp);
 
     printf("Sorted array   = ");
-    print_arr(arr, nSize);
+    PrintArray(arr, lSize, sizeof(int), print_number);
 
     return 0;
 }

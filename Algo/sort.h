@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 
-void selection_sort(int arr[], size_t nSize);
-void bubble_sort(int arr[], size_t nSize);
-void insertion_sort(int arr[], size_t nSize);
+void selection_sort(void *data, size_t lSize, int nItemSize, int (* compare)(void *, void *));
+void bubble_sort(void *data, size_t lSize, int nItemSize, int (* compare)(void *, void *));
+void insertion_sort(void *data, size_t lSize, int nItemSize, int (* compare)(void *, void *));
 
 #endif

@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-int linear_search(int arr[], size_t nSize, int key);
-int binary_search(int arr[], size_t nSize, int key);
+int linear_search(void *data, void *key, size_t lSize, int nItemSize, int (*compare)(void *, void *));
+int binary_search(void *data, void *key, size_t lSize, int nItemSize, int (*compare)(void *, void *));
 
 #endif

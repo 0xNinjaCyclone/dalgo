@@ -6,60 +6,82 @@
 */
 
 #include "sort.h"
+#include "move.h"
 
-void selection_sort(int arr[], size_t nSize)
+void selection_sort(void *data, size_t lSize, int nItemSize, int (* compare)(void *, void *))
 {
-    int idx, swapper;
+    int idx;
 
-    for (size_t i = 0; i < nSize - 1; i++)
+    for (size_t i = 0; i < lSize - 1; i++)
     {
         idx = i;
 
-        for (size_t j = i + 1; j < nSize; j++)
-            if (arr[idx] > arr[j])
+        for (size_t j = i + 1; j < lSize; j++)
+            
+            if (compare(
+                (void *)((__SIZE_TYPE__) data + idx * nItemSize),
+                (void *)((__SIZE_TYPE__) data + j * nItemSize)
+            ) > 0)
                 idx = j;
 
-        swapper = arr[i];
-        arr[i] = arr[idx];
-        arr[idx] = swapper;
+        GSwap(
+            (void *)((__SIZE_TYPE__) data + i * nItemSize),
+            (void *)((__SIZE_TYPE__) data + idx * nItemSize),
+            nItemSize
+        );
     }
 }
 
-void bubble_sort(int arr[], size_t nSize)
+void bubble_sort(void *data, size_t lSize, int nItemSize, int (* compare)(void *, void *))
 {
-    int swapper, counter = 0;
+    int counter = 0;
 
-    while (++counter < nSize) 
+    while (++counter < lSize) 
     {  
-        for (size_t i = 0; i < nSize - counter; i++)
-            if (arr[i] > arr[i + 1])
-            {
-                swapper = arr[i];
-                arr[i] = arr[i + 1];
-                arr[i + 1] = swapper;
-            }
+        for (size_t i = 0; i < lSize - counter; i++)
+            
+            if (compare(
+                (void *)((__SIZE_TYPE__) data + i * nItemSize),
+                (void *)((__SIZE_TYPE__) data + (i + 1) * nItemSize)
+            ) > 0)
+                GSwap(
+                    (void *)((__SIZE_TYPE__) data + i * nItemSize),
+                    (void *)((__SIZE_TYPE__) data + (i + 1) * nItemSize),
+                    nItemSize
+                );
         
     }
     
 }
 
-void insertion_sort(int arr[], size_t nSize)
+// HAS A BUG NEED TO BE FIXED
+void insertion_sort(void *data, size_t lSize, int nItemSize, int (* compare)(void *, void *))
 {
-    int key, idx;
+    void *pKey;
+    size_t lIdx;
 
-    for (size_t i = 1; i < nSize; i++)
+    for (size_t i = 1; i < lSize; i++)
     {
-        key = arr[i];
-        idx = i - 1;
+        pKey = (void *)((__SIZE_TYPE__) data + i * nItemSize);
+        lIdx = i - 1;
+        
 
         /* Shift elements from left to right to put the item in the correct position */
-        while (idx >= 0 && arr[idx] > key) 
+        while ( lIdx >= 0 && compare((void *)((__SIZE_TYPE__) data + lIdx * nItemSize), pKey ) > 0 ) 
         {
-            arr[idx + 1] = arr[idx];
-            idx--;
+            memcpy(
+                (void *)((__SIZE_TYPE__) data + (lIdx + 1) * nItemSize),
+                (void *)((__SIZE_TYPE__) data + lIdx * nItemSize),
+                nItemSize
+            );
+            lIdx--;
         }
 
-        arr[idx + 1] = key;
-        
+        /* Put the item at the correct pos */
+        memcpy(
+            (void *)((__SIZE_TYPE__) data + (lIdx + 1) * nItemSize),
+            pKey,
+            nItemSize
+        );
     }
 }

@@ -7,34 +7,36 @@
 
 #include "search.h"
 
-int linear_search(int arr[], size_t nSize, int key)
+int linear_search(void *data, void *key, size_t lSize, int nItemSize, int (*compare)(void *, void *))
 {
     /* Return the position of the item or -1 if does not exist */
-
-    for (size_t i = 0; i < nSize; i++)
-        if (arr[i] == key)
+    
+    for (size_t i = 0; i < lSize; i++)
+        if ( compare( ((void *)(__SIZE_TYPE__) data + i * nItemSize ), key) == 0 )
             return i;
 
     return -1;
 }
 
-int binary_search(int arr[], size_t nSize, int key)
+int binary_search(void *data, void *key, size_t lSize, int nItemSize, int (*compare)(void *, void *))
 {
     /* Return the position of the item or -1 if does not exist */
 
-    int found, mid, low, high;
+    unsigned char found;
+    int mid, low, high, res;
 
     found = low = 0;
-    high = nSize - 1;
+    high = lSize - 1;
 
     while (!found || low > high)
     {
         mid = (low + high) / 2;
+        res = compare( (void *)(__SIZE_TYPE__) data + mid * nItemSize, key );
 
-        if (arr[mid] == key)
+        if ( res == 0 )
             found = 1;
         
-        else if(arr[mid] > key)
+        else if( res > 0 )
             high = mid - 1;
 
         else
