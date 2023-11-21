@@ -54,34 +54,34 @@ void bubble_sort(void *data, size_t lSize, int nItemSize, int (* compare)(void *
     
 }
 
-// HAS A BUG NEED TO BE FIXED
 void insertion_sort(void *data, size_t lSize, int nItemSize, int (* compare)(void *, void *))
 {
     void *pKey;
-    size_t lIdx;
+    size_t lIdx; 
+
+    if ( !(pKey = malloc(nItemSize)) )
+        return;
 
     for (size_t i = 1; i < lSize; i++)
     {
-        pKey = (void *)((__SIZE_TYPE__) data + i * nItemSize);
-        lIdx = i - 1;
+        memcpy( pKey, (void *)((__SIZE_TYPE__) data + i * nItemSize), nItemSize );
+        lIdx = i;
         
-
         /* Shift elements from left to right to put the item in the correct position */
-        while ( lIdx >= 0 && compare((void *)((__SIZE_TYPE__) data + lIdx * nItemSize), pKey ) > 0 ) 
-        {
-            memcpy(
+        while ( lIdx-- && compare((void *)((__SIZE_TYPE__) data + lIdx * nItemSize), pKey ) > 0 ) 
+            memmove(
                 (void *)((__SIZE_TYPE__) data + (lIdx + 1) * nItemSize),
                 (void *)((__SIZE_TYPE__) data + lIdx * nItemSize),
                 nItemSize
             );
-            lIdx--;
-        }
 
         /* Put the item at the correct pos */
-        memcpy(
+        memmove(
             (void *)((__SIZE_TYPE__) data + (lIdx + 1) * nItemSize),
             pKey,
             nItemSize
         );
     }
+
+    free( pKey );
 }

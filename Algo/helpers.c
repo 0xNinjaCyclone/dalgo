@@ -158,7 +158,7 @@ wchar_t *WideStrFromAnsi(char *cpStr, size_t lSize)
 
     if ( wpStr = (wchar_t *) malloc(lWStrSize) )
     {
-        mbstowcs(wpStr, cpStr, lWStrSize);
+        mbstowcs(wpStr, cpStr, lSize);
         *( wpStr + lSize ) = 0x00;
     }
 
