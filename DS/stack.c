@@ -7,106 +7,95 @@
 
 #include "stack.h"
 
-STACK *stack_init(int size) {
+Stack *stack_init(size_t lMaxSize, int nItemSize) {
     /* return initiated stack address */
 
-    STACK *s = (STACK *) malloc(sizeof(STACK));
+    Stack *s = (Stack *) malloc( sizeof(Stack) );
     
-    if (s) {
-        s->top = -1;
-        s->maxsize = size;
-        s->values = (int *) malloc(sizeof(int) * s->maxsize);
+    if ( s ) {
+        s->lTop = -1;
+        s->lMaxSize = lMaxSize;
+        s->nItemSize = nItemSize;
+        s->bEmpty = 1;
+        s->data = malloc( s->nItemSize * s->lMaxSize);
 
-        if (s->values) {
+        if ( s->data ) 
             return s;
-        } else {
-            /* Free handler */
-            free(s);
+        
+        /* Free handler */
+        free( s );
 
-            goto OOM;
-        }
-    } else {
-        goto OOM;
-    }
+    } 
 
-    OOM :
-        fprintf(stderr,"Out Of Memory");
-        exit(EXIT_FAILURE);
+    return NULL;
 }
 
-void stack_cleanup(STACK **s)
+void stack_cleanup(Stack **s)
 {
-    free((*s)->values);
-    free(*s);
+    free( (*s)->data );
+    free( *s );
 
     /* Set ptr to null to avoid dangling */
     *s = NULL;
 }
 
-int stack_size(STACK *s)
+size_t stack_size(Stack *s)
 {
-    return s->top + 1;
+    return s->lTop + 1;
 }
 
-int stack_empty(STACK *s)
+int stack_empty(Stack *s)
 {
-    return !s || s->top == -1;
+    return !s || s->bEmpty;
 }
 
-int stack_full(STACK *s)
+int stack_full(Stack *s)
 {
-    return s->top >= (s->maxsize - 1);
+    return !stack_empty(s) && s->lTop == (s->lMaxSize - 1);
 }
 
-int stack_push(STACK *s,int item)
+int stack_push(Stack *s, void *item)
 {
-    if(stack_full(s))
+    if( stack_full(s) )
         return 0;
 
-    else {
-        s->values[++s->top] = item;
-        return 1;
-    } 
+    memcpy( (void *)((__SIZE_TYPE__) s->data + (++s->lTop) * s->nItemSize), item, s->nItemSize );
+    s->bEmpty = 0;
+    return 1;
+    
 }
 
-int stack_pop(STACK *s)
+int stack_pop(Stack *s)
 {
-    if(stack_empty(s))
+    if( stack_empty(s) )
         return 0;
     
-    else {
-        s->top--;
-        return 1;
-    }
+    
+    s->bEmpty = ( s->lTop-- == 0 );
+    return 1;
+    
 }
 
-int stack_getitem(STACK *s)
+void *stack_getitem(Stack *s)
 {
-    if (!stack_empty(s))
-        return s->values[s->top];
+    if ( stack_empty(s) )
+        return NULL;
 
-    else {
-        /* Error case */
-
-        if (s) {
-            /* handler is initiated, we must cleanup */
-            stack_cleanup(&s);
-        }
-
-        fprintf(stderr,"Stack is empty");
-        exit(EXIT_FAILURE);
-    }
+    return (void *)((__SIZE_TYPE__) s->data + s->lTop * s->nItemSize);
 }
 
-void stack_print(STACK *s)
+void stack_print(Stack *s, void (* print)(void *))
 {
-    int temp = s->top;
+    size_t temp = s->lTop;
 
-    while (!stack_empty(s))
+    while ( s->lTop != -1 )
     {
-        printf("Value %d => %d\n",s->top,s->values[s->top]);
-        s->top--;
+        for (size_t i = 0; i <= s->lTop && s->lTop != -1; i++) printf("-");
+        printf("> ");
+        print( (void *)((__SIZE_TYPE__) s->data + s->lTop * s->nItemSize) );
+        puts("");
+        s->lTop--;
     }
     
-    s->top = temp;
+    s->lTop = temp;
 }

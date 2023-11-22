@@ -10,110 +10,115 @@
 
 Queue *lqueue_init()
 {
-    Queue *q = (Queue *) malloc(sizeof(Queue));
+    Queue *q;
 
-    if (!q) 
-        lqueue_oom();
+    if ( q = malloc( sizeof(Queue) ) )
+    {
+        q->lSize = 0;
+        q->front = q->rear = NULL;
+        return q;
+    }
 
-    return q;
+    return NULL;
 }
 
-int lqueue_size(Queue *q)
+size_t lqueue_size(Queue *q)
 {
-    return q->counter + 1;
+    return q->lSize;
 }
 
 int lqueue_empty(Queue *q)
 {
-    return !q || !q->front;
+    return !q->front;
 }
 
-void lqueue_en(Queue *q,int item)
+int lqueue_en(Queue *q, void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *))
 {
-    QNode *temp = (QNode *) malloc(sizeof(QNode));
+    QNode *node;
 
-    if (temp) {
-        temp->value = item;
-        temp->next = NULL;
-
-        if (lqueue_empty(q))
-        {
-            q->counter = 0;
-            q->front = q->rear = temp;
-        } else {
-            q->counter++;
-            
-            /* Change rear position */
-            q->rear = q->rear->next = temp;
-        }
-    } else {
-        lqueue_cleanup(&q);
-        lqueue_oom();
-    }
-
-}
-
-void lqueue_de(Queue *q)
-{
-    QNode *temp;
-
-    if (!lqueue_empty(q))
+    if ( node = malloc( sizeof(QNode) ) )
     {
-        temp = q->front;
-        q->front = q->front->next;
-        q->counter--;
-        temp->next = NULL;
-        free(temp);
+        node->allocate = allocate;
+        node->deallocate = deallocate;
+        node->print = print;
+        node->nSize = nItemSize;
+        node->data = node->allocate( node->nSize );
+        node->next = NULL;
 
-        if (lqueue_empty(q)) /* if Queue becomes empty */
-        {
-            /* Set rear value to null because last front and rear is same */
-            q->rear = NULL;
-        }
+        if ( !node->data )
+            return 0;
+
+        memcpy( node->data, item, node->nSize );
+
+        if ( lqueue_empty(q) )
+            q->front = q->rear = node;
+
+        else
+            q->rear = q->rear->next = node;
+
+        q->lSize++;
+
+        return 1;
     }
+
+    return 0;
+}
+
+int lqueue_de(Queue *q)
+{
+    QNode *node;
+
+    if ( lqueue_empty(q) )
+        return 0;
+
+    node = q->front;
+    q->front = q->front->next;
+    node->next = NULL;
+    node->deallocate( node->data );
+    free( node );
+    q->lSize--;
+
+    /* if the Queue becomes empty, Set rear to NULL, because last front and rear are same */
+    if ( lqueue_empty(q) ) 
+        q->rear = NULL;
+
+    return 1;
+}
+
+void *lqueue_getitem(Queue *q)
+{
+    if ( lqueue_empty(q) )
+        return NULL;
+
+    return q->front->data;
 }
 
 void lqueue_cleanup(Queue **q)
 {
+    while ( !lqueue_empty( *q ) )
+        lqueue_de( *q );
 
-    while (!lqueue_empty(*q)) /* free all nodes */
-    {
-        lqueue_de(*q);
-    }
-
-    /* free Queue handler after free all nodes */
-    free(*q);
-
-    /* Set ptr to null to avoid dangling */
-    (*q) = NULL;
-}
-
-int lqueue_getitem(Queue *q)
-{
-    if (!lqueue_empty(q))
-        return q->front->value;
-    else {
-        /* Error case */
-
-        lqueue_cleanup(&q);
-        fprintf(stderr,"Error Can't getitem, Queue is empty");
-        exit(EXIT_FAILURE);
-    }
+    free( *q );
+    ( *q ) = NULL;
 }
 
 void lqueue_print(Queue *q)
 {
-    QNode *temp = q->front;
+    QNode *node;
+    size_t lCtr;
 
-    for (size_t i = 0; i < lqueue_size(q); i++)
+    if ( !lqueue_empty(q) )
     {
-        printf("Value %d => %d\n",i,temp->value);
-        temp = temp->next;
+        node = q->front;
+        lCtr = 1;
+
+        do {
+            for (size_t i = 0; i < lCtr; i++) printf("-");
+            printf( "> " );
+            node->print( node->data );
+            puts("");
+            lCtr++;
+        } while( node = node->next );
     }
 }
 
-void lqueue_oom()
-{
-    fprintf(stderr,"Out Of Memory");
-    exit(EXIT_FAILURE);
-}

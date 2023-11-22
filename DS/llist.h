@@ -3,38 +3,48 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 typedef struct Node LNode;
 
 struct Node
 {
     LNode *next;
-    int value;
+    void *data;
+    int nSize;
+    void *(* allocate)(size_t);
+    void (* deallocate)(void *);
+    void (* print)(void *);
+    int (* compare)(void *, void *);
 };
 
 typedef struct 
 {
     LNode *first;
     LNode *last;
-    int size;
+    size_t lSize;
 } List;
 
+
 List *llist_init();
-void llist_cleanup(List **l);
-int llist_size(List *l);
+size_t llist_size(List *l);
 int llist_empty(List *l);
-int llist_insert(List *l, int item);
-int llist_insertAt(List *l, int idx, int item);
-int llist_insertAtFirst(List *l, int item);
-int llist_updateAt(List *l, int idx, int item);
+int llist_insert(List *l, void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *));
+int llist_insertAtFirst(List *l, void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *));
+int llist_insertAt(List *l, size_t lIdx, void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *));
+int llist_updateAt(List *l, size_t lIdx, void *item);
+void *llist_getitemAt(List *l, size_t lIdx);
 int llist_delete(List *l);
 int llist_deleteAtFirst(List *l);
-int llist_deleteAt(List *l, int idx);
-int llist_getitemAt(List *l, int idx);
-int llist_search(List *l, int item);
+int llist_deleteAt(List *l, size_t lIdx);
+long llist_search(List *l, void *item, int nItemSize);
 void llist_reverse(List *l);
 void llist_clear(List *l);
+void llist_cleanup(List **l);
 void llist_print(List *l);
-void llist_oom();
+
+LNode *build_node(void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *));
+void destroy_node(LNode *node);
+
 
 #endif

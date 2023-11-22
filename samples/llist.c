@@ -3,10 +3,14 @@
     
     Author      => Abdallah Mohamed Elsharif
     Date        => 12-2-2022
-    Compile     => gcc -I../DS/ ../DS/llist.c llist.c -o llist
+    Compile     => gcc -I../DS/ -I../Algo ../Algo/helpers.c ../DS/llist.c llist.c -o llist
 */
 
 #include "llist.h"
+#include "helpers.h"
+
+void print_int(void *item) { printf("%d", *(int *) item); }
+void print_str(void *item) { printf("\"%s\"", (char *) item); }
 
 void main(void)
 {
@@ -14,22 +18,37 @@ void main(void)
     int value, found;
 
     /* Append data to the end of the list */
-    llist_insert(mylist, 10);
-    llist_insert(mylist, 20);
-    llist_insert(mylist, 30);
-    llist_insert(mylist, 50);
+    value = 10;
+    llist_insert(mylist, &value, sizeof(int), malloc, free, print_int, IntCmp);
+
+    value = 20;
+    llist_insert(mylist, &value, sizeof(int), malloc, free, print_int, IntCmp);
+
+    value = 30;
+    llist_insert(mylist, &value, sizeof(int), malloc, free, print_int, IntCmp);
+
+    value = 50;
+    llist_insert(mylist, &value, sizeof(int), malloc, free, print_int, IntCmp);
 
     /* Append at the first of the list */
-    llist_insertAtFirst(mylist, 5);
+    value = 5;
+    llist_insert(mylist, &value, sizeof(int), malloc, free, print_int, IntCmp);
 
     /* Append at specified positions */
-    llist_insertAt(mylist, 4, 40);
-    llist_insertAt(mylist, 0, 0);
+    value = 4;
+
+    llist_insertAt(mylist, 4, &value, sizeof(int), malloc, free, print_int, IntCmp);
+
+    value = 0;
+    llist_insertAt(mylist, 4, &value, sizeof(int), malloc, free, print_int, IntCmp);
 
     /* Multiply the first 3 items by 10 */
     for (size_t i = 0; i < 3; i++)
-        llist_updateAt(mylist, i, llist_getitemAt(mylist, i) * 10);
-    
+    {
+        value = *(int *)(llist_getitemAt(mylist, i)) * 10;
+        llist_updateAt(mylist, i, &value);
+    }
+
     /* Delete the last item */
     llist_delete(mylist);
 
@@ -38,6 +57,10 @@ void main(void)
 
     /* Delete the item in a specified position */
     llist_deleteAt(mylist, 2);
+
+    /* Add string item */
+    char name[] = "Abdallah\0";
+    llist_insertAtFirst(mylist, name, strlen(name) + 1, malloc, free, print_str, StrCmpA);
 
     puts("Print :");
     llist_print(mylist);
@@ -49,13 +72,13 @@ void main(void)
     llist_print(mylist);
 
     /* Print some data */
-    printf("\nsize = %d, item(0) = %d\n", llist_size(mylist), llist_getitemAt(mylist, 0));
+    printf("\nsize = %d, item(0) = %d\n", llist_size(mylist), *(int *)llist_getitemAt(mylist, 0));
 
     /* Search in the list */
-    value = 10; /* Find the position of this value */
+    value = 100; /* Find the position of this value */
     printf("\n(Search) Find the position of %d\n", value);
 
-    if ((found = llist_search(mylist, value)) != -1)
+    if ((found = llist_search(mylist, &value, sizeof(int))) != -1)
         printf("The position of %d is %d\n", value, found);
 
     else

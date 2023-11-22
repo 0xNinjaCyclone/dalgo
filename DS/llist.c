@@ -9,256 +9,229 @@
 
 List *llist_init()
 {
-    List *l = (List *) malloc(sizeof(List));
-    if (!l)
-        llist_oom();
+    List *l;
 
-    return l;
+    if ( l = malloc( sizeof(List) ) )
+    {
+        l->first = l->last = NULL;
+        l->lSize = 0;
+        return l;
+    }
+
+    return NULL;
 }
 
-int llist_size(List *l)
+size_t llist_size(List *l)
 {
-    return l->size;
+    return l->lSize;
 }
 
 int llist_empty(List *l)
 {
-    return !l || !l->first || llist_size(l) == 0;
+    return !l->first || llist_size(l) == 0;
 }
 
-int llist_insert(List *l, int item)
+int llist_insert(List *l, void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *))
 {
-    /* Insert at the last of the list */
+    LNode *node;
 
-    LNode *temp = (LNode *) malloc(sizeof(LNode));
-
-    if (temp) {
-        temp->value = item;
-        if (llist_empty(l)) {
-            l->first = l->last = temp;
-        } else {
-            l->last->next = temp;
-            l->last = temp;
+    if ( node = build_node(item, nItemSize, allocate, deallocate, print, compare) )
+    {
+        if ( llist_empty(l) )
+            l->first = l->last = node;
+        else {
+            l->last->next = node;
+            l->last = node;
         }
 
-        temp->next = NULL;
-        l->size++;
+        l->lSize++;
 
         return 1;
-    } else {
-        llist_cleanup(&l);
-        llist_oom();
     }
+
+    return 0;
 }
 
-int llist_insertAtFirst(List *l, int item)
+int llist_insertAtFirst(List *l, void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *))
 {
-    LNode *temp = (LNode *) malloc(sizeof(LNode));
+    LNode *node;
 
-    if (temp) {
-        temp->value = item;
-        if (llist_empty(l)) {
-            l->first = l->last = temp;
-            temp->next = NULL;
-        } else {
-            temp->next = l->first;
-            l->first = temp;
+    if ( node = build_node(item, nItemSize, allocate, deallocate, print, compare) )
+    {
+        if ( llist_empty(l) )
+            l->first = l->last = node;
+        else {
+            node->next = l->first;
+            l->first = node;
         }
 
-        l->size++;
+        l->lSize++;
 
         return 1;
-    } else {
-        llist_cleanup(&l);
-        llist_oom();
+    }
+
+    return 0;
+}
+
+int llist_insertAt(List *l, size_t lIdx, void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *))
+{
+    LNode *node, *curr;
+
+    if ( lIdx < 0 || lIdx > llist_size(l) )
+        return 0;
+
+    if ( lIdx == 0 )
+        return llist_insertAtFirst(l, item, nItemSize, allocate, deallocate, print, compare);
+
+    else if ( lIdx == llist_size(l) )
+        return llist_insert(l, item, nItemSize, allocate, deallocate, print, compare);
+
+    else {
+        /* Build the node and return if built failed */
+        if ( !(node = build_node(item, nItemSize, allocate, deallocate, print, compare)) )
+            return 0;
+
+        /* Move to the item before the target */
+        for (curr = l->first; --lIdx - 1; curr = curr->next);
+
+        node->next = curr->next;
+        curr->next = node;
+        l->lSize++;
+
+        return 1;
     }
 }
 
-int llist_insertAt(List *l, int idx, int item)
+int llist_updateAt(List *l, size_t lIdx, void *item)
 {
-    LNode *curr, *temp;
+    LNode *node;
 
-    if (idx < 0 || idx > llist_size(l))
+    if ( lIdx < 0 || lIdx > llist_size(l) )
         return 0;
 
-    if (idx == 0)
-        return llist_insertAtFirst(l, item);
+    if ( lIdx == 0 )
+        memcpy( l->first->data, item, l->first->nSize );
 
-    else if (idx == llist_size(l))
-        return llist_insert(l, item);
-
-    else {
-        temp = (LNode *) malloc(sizeof(LNode));
-
-        if (temp) {
-            curr = l->first;
-            for (size_t i = 1; i < idx; i++)
-            {
-                curr = curr->next;
-            }
-
-            temp->value = item;
-            temp->next = curr->next;
-            curr->next = temp;
-            l->size++;
-
-            return 1;
-            
-        } else {
-            llist_cleanup(&l);
-            llist_oom();
-        }
-    }
-}
-
-int llist_updateAt(List *l, int idx, int item)
-{
-    LNode *targetNode; 
-
-    if (llist_empty(l) || idx < 0 || idx >= llist_size(l))
-        return 0;
-
-    if (idx == 0)
-        l->first->value = item;
-
-    else if (idx == llist_size(l) - 1)
-        l->last->value = item;
+    else if ( lIdx == llist_size(l) - 1 )
+        memcpy( l->last->data, item, l->last->nSize );
 
     else {
-        targetNode = l->first;
+        /* move to the target node */
+        for (node = l->first; --lIdx; node = node->next);
 
-        for (size_t i = 0; i < idx; i++)
-        {
-            targetNode = targetNode->next;
-        }
-
-        targetNode->value = item;
-
-    }
+        memcpy( node->data, item, node->nSize );
+    }   
 
     return 1;
 }
 
-int llist_getitemAt(List *l, int idx)
+void *llist_getitemAt(List *l, size_t lIdx)
 {
-    LNode *targetNode; 
+    LNode *node;
 
-    if (llist_empty(l) || idx < 0 || idx >= llist_size(l))
-    {
-        llist_cleanup(&l);
-        fprintf(stderr,"Error Can't getitem");
-        exit(EXIT_FAILURE);
-    }
+    if ( lIdx < 0 || lIdx > llist_size(l) )
+        return NULL;
 
-    if (idx == 0)
-        return l->first->value;
+    if ( lIdx == 0 )
+        return l->first->data;
 
-    else if (idx == llist_size(l) - 1)
-        return l->last->value;
+    else if ( lIdx == llist_size(l) - 1 )
+        return l->last->data;
 
     else {
-        targetNode = l->first;
+        /* move to the target node */
+        for (node = l->first; --lIdx; node = node->next);
 
-        for (size_t i = 0; i < idx; i++)
-        {
-            targetNode = targetNode->next;
-        }
+        return node->data;
+    }   
 
-        return targetNode->value;
-    }
 }
 
 int llist_delete(List *l)
 {
-    /* Delete last item, return 1 if succeed else 0 */
+    /* Delete the last item, return 1 if succeed else 0 */
 
     LNode *prevLast, *temp;
+    size_t lSize;
 
-    if (llist_empty(l))
+    if ( llist_empty(l) )
         return 0;
 
-    if (llist_size(l) == 1) {
-        free(l->first);
+    if ( llist_size(l) == 1 ) {
+        destroy_node( l->first );
         l->first = l->last = NULL;
-        l->size--;
+        l->lSize--;
 
         return 1;
     }
 
-    prevLast = l->first;
+    lSize = llist_size(l);
 
-    for (size_t i = 0; i < llist_size(l) - 2; i++)
-    {
-        prevLast = prevLast->next;
-    }
+    /* move to the node before last one */
+    for (prevLast = l->first; --lSize - 1; prevLast = prevLast->next);
 
     temp = l->last;
     l->last = prevLast;
     prevLast->next = NULL;
-    free(temp);
-    l->size--;
+    destroy_node( temp );
+    l->lSize--;
 
     return 1;
-    
 }
 
 int llist_deleteAtFirst(List *l)
 {
-    /* Delete last item, return 1 if succeed else 0 */
+    /* Delete the first item, return 1 if succeed else 0 */
 
     LNode *temp;
 
-    if (llist_empty(l))
+    if ( llist_empty(l) )
         return 0;
 
-    if (llist_size(l) == 1) { /* If the list has only one item */
-        free(l->first);
+    /* if there is only one item */
+    if ( llist_size(l) == 1 ) {
+        destroy_node( l->first );
         l->first = l->last = NULL;
-        l->size--;
+        l->lSize--;
 
         return 1;
     }
 
     temp = l->first;
     l->first = l->first->next;
-    free(temp);
-    l->size--;
+    destroy_node( temp );
+    l->lSize--;
 
     return 1;
-    
 }
 
-int llist_deleteAt(List *l, int idx)
+int llist_deleteAt(List *l, size_t lIdx)
 {
     LNode *prev, *temp;
 
-    if (llist_empty(l) || idx < 0 || idx >= llist_size(l))
+    if ( llist_empty(l) || lIdx >= llist_size(l) )
         return 0;
 
-    if (idx == 0)
+    if (lIdx == 0)
         return llist_deleteAtFirst(l);
 
-    else if (idx == llist_size(l) - 1)
+    else if (lIdx == llist_size(l) - 1)
         return llist_delete(l);
 
     else {
-        prev = l->first;
+        /* move to the node before target */
+        for (prev = l->first; --lIdx - 1; prev = prev->next);
 
-        for (size_t i = 0; i < idx - 1; i++)
-        {
-            prev = prev->next;
-        }
-        
         temp = prev->next; /* This is the target item */
         prev->next = temp->next;
-        free(temp);
-        l->size--;
+        destroy_node( temp );
+        l->lSize--;
 
         return 1;
     }
 }
 
-int llist_search(List *l, int item)
+long llist_search(List *l, void *item, int nItemSize)
 {
     /* return -1 if didn't find it or positon of the item */
 
@@ -267,11 +240,9 @@ int llist_search(List *l, int item)
     if (llist_empty(l))
         return -1;
 
-    for (size_t pos = 0; temp; temp = temp->next, pos++)
-    {
-        if (temp->value == item)
-            return pos;
-    }
+    for (size_t lPos = 0; temp; temp = temp->next, lPos++)
+        if ( nItemSize == temp->nSize && temp->compare(temp->data, item) == 0 )
+            return lPos;
     
     return -1;
 }
@@ -280,14 +251,14 @@ void llist_reverse(List *l)
 {
     LNode *prev, *curr, *next;
 
-    if (llist_empty(l) || llist_size(l) == 1)
+    if ( llist_empty(l) || llist_size(l) == 1 )
         return;
 
     prev = NULL;
     curr = l->first;
     next = curr->next;
 
-    while (next)
+    while ( next )
     {
         next = curr->next;
         curr->next = prev;
@@ -301,44 +272,77 @@ void llist_reverse(List *l)
 
 void llist_clear(List *l)
 {
-    while (!llist_empty(l))
+    while ( !llist_empty(l) )
     {
         /* 
             (deleteAtFirst) is the best function to do that 
             because its complexity is (Big O(1)) but (delete || deleteAt) is (Big O(n))
         */
         
-        llist_deleteAtFirst(l);
+        llist_deleteAtFirst( l );
     }
-    
 }
 
 void llist_cleanup(List **l)
 {
     /* Free all nodes */
-    llist_clear(*l);
+    llist_clear( *l );
 
     /* Free list handler */
-    free(*l);
+    free( *l );
 
     /* Set ptr to null to avoid dangling */
-    (*l) = NULL;
+    ( *l ) = NULL;
 }
 
 void llist_print(List *l)
 {
-    LNode *temp = l->first;
+    LNode *node;
 
-    for (size_t counter = 0; temp; temp = temp->next, counter++)
+    printf("[ ");
+
+    if ( node = l->first )
     {
-        printf("Value %d => %d\n", counter, temp->value);
+        do {
+            node->print( node->data );
+            if ( node->next ) printf(", ");
+        } while ( node = node->next );
     }
-    
+
+    printf(" ]");
 }
 
-void llist_oom()
+LNode *build_node(void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *))
 {
-    fprintf(stderr,"Out Of Memory");
-    exit(EXIT_FAILURE);
+    LNode *node;
+
+    if ( node = malloc( sizeof(LNode) ) )
+    {
+        node->allocate = allocate;
+        node->deallocate = deallocate;
+        node->print = print;
+        node->compare = compare;
+        node->nSize = nItemSize;
+        node->next = NULL;
+        node->data = node->allocate( node->nSize );
+
+        if ( !node->data )
+        {
+            free( node );
+            return NULL;
+        }
+
+        memcpy( node->data, item, node->nSize );
+
+        return node;
+    }
+
+    return NULL;
+}
+
+void destroy_node(LNode *node)
+{
+    node->deallocate( node->data );
+    free( node );
 }
 

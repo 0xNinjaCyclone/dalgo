@@ -3,32 +3,37 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 
-typedef struct Node QNode;
+typedef struct _QNode QNode;
 
-struct Node
+struct _QNode
 {
     QNode *next;
-    int value;
+    void *data;
+    int nSize;
+    void *(* allocate)(size_t);
+    void (* deallocate)(void *);
+    void (* print)(void *);
 };
 
 typedef struct
 {
     QNode *rear;
     QNode *front;
-    int counter;
+    size_t lSize;
 } Queue;
 
 
 Queue *lqueue_init();
-int lqueue_size(Queue *q);
-void lqueue_en(Queue *q,int item);
-void lqueue_de(Queue *q);
+size_t lqueue_size(Queue *q);
 int lqueue_empty(Queue *q);
-int lqueue_getitem(Queue *q);
-void lqueue_print(Queue *q);
+int lqueue_en(Queue *q, void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *));
+int lqueue_de(Queue *q);
+void *lqueue_getitem(Queue *q);
 void lqueue_cleanup(Queue **q);
-void lqueue_oom();
+void lqueue_print(Queue *q);
+
 
 #endif

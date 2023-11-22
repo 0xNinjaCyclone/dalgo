@@ -41,7 +41,7 @@ void GRightRotate(void *data, size_t lSize, size_t lNumberOfItems, int nItemSize
 
     if ( pTemp = malloc(lRotateSize) )
     {
-        memcpy(pTemp, (void *)((__SIZE_TYPE__) data + (lSize * nItemSize) - lRotateSize), lRotateSize);
+        memcpy( pTemp, (void *)((__SIZE_TYPE__) data + (lSize * nItemSize) - lRotateSize), lRotateSize );
         memcpy( (void *)((__SIZE_TYPE__) data + lRotateSize), data, (lSize * nItemSize) - lRotateSize );
         memcpy( data, pTemp, lRotateSize );
         free( pTemp );
@@ -81,6 +81,9 @@ void GLeftShift(void *data, size_t lSize, size_t lTimes, int nItemSize)
 
 void GRightShift(void *data, size_t lSize, size_t lTimes, int nItemSize)
 {
+    if( lSize <= 1 || !lTimes ) return; // cannot mod by zero
+    lTimes %= lSize;
+    
     // cycle right by `s` is equivalent to cycle left by `n - s`
     GLeftShift(data, lSize, lSize - lTimes, nItemSize);
 }

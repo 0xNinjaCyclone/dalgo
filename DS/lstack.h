@@ -4,23 +4,35 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
+typedef struct _StackNode StackNode;
 
-typedef struct stack STACK;
-
-struct stack
+struct _StackNode 
 {
-    STACK *next;
-    int counter;
-    int value;
+    StackNode *next;
+    void *data;
+    int nSize;
+    void *(* allocate)(size_t);
+    void (* deallocate)(void *);
+    void (* print)(void *);
 };
 
-void lstack_push(STACK **s,int item);
-void lstack_pop(STACK **s);
-int lstack_size(STACK *s);
-int lstack_empty(STACK *s);
-int lstack_getitem(STACK *s);
-void lstack_print(STACK *s);
-void lstack_cleanup(STACK **s);
+typedef struct
+{
+    StackNode *top;
+    size_t lSize;
+} Stack;
+
+
+Stack *lstack_init();
+int lstack_push(Stack *s, void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *));
+int lstack_pop(Stack *s);
+size_t lstack_size(Stack *s);
+int lstack_empty(Stack *s);
+void *lstack_getitem(Stack *s);
+void lstack_print(Stack *s);
+void lstack_cleanup(Stack **s);
+
 
 #endif

@@ -8,46 +8,40 @@
 #include "queue.h"
 
 
-Queue *queue_init(int size)
+Queue *queue_init(size_t lMaxSize, int nItemSize)
 {
     /* return initiated queue address */
 
-    Queue *q = (Queue *) malloc(sizeof(Queue));
+    Queue *q = (Queue *) malloc( sizeof(Queue) );
 
-    if (q) {
-        q->front = q->counter = 0;
-        q->rear = -1;
-        q->maxsize = size;
-        q->values = (int *) malloc(sizeof(int) * q->maxsize);
+    if ( q ) {
+        q->lFront = q->lCtr = 0;
+        q->lRear = -1;
+        q->lMaxSize = lMaxSize;
+        q->nItemSize = nItemSize;
+        q->data = malloc( q->nItemSize * q->lMaxSize );
 
-        if (q->values) {
+        if ( q->data ) 
             return q;
-        } else {
-            /* Free queue handler if malloc values failed */
+         
+        /* Free queue handler if data alloc failed */
+        free(q);
 
-            free(q);
-            goto OOM;
-        }
-    } else {
-        goto OOM;
-    }
+    } 
     
-
-    OOM :
-        fprintf(stderr,"Out Of Memory");
-        exit(EXIT_FAILURE);
+    return NULL;
 }
 
 void queue_cleanup(Queue **q)
 {
-    free((*q)->values);
-    free(*q);
+    free( (*q)->data );
+    free( *q );
     *q = NULL; /* Set ptr to null to avoid dangling */
 }
 
-int queue_size(Queue *q)
+size_t queue_size(Queue *q)
 {
-    return q->counter;
+    return q->lCtr;
 }
 
 int queue_empty(Queue *q)
@@ -57,62 +51,53 @@ int queue_empty(Queue *q)
 
 int queue_full(Queue *q)
 {
-    return queue_size(q) == q->maxsize;
+    return queue_size(q) == q->lMaxSize;
 }
 
-int queue_en(Queue *q,int item)
+int queue_en(Queue *q, void *item)
 {
     /* return 1 if success else return 0 */
     
-    if (queue_full(q))
+    if ( queue_full(q) )
         return 0;
 
-    else {
-        q->counter++;
-        q->values[++q->rear] = item;
-        
-        return 1;
-    }
+    
+    q->lCtr++;
+    memcpy( (void *)((__SIZE_TYPE__) q->data + (++q->lRear) * q->nItemSize), item, q->nItemSize );
+    
+    return 1;   
 }
 
 int queue_de(Queue *q)
 {
     /* return 1 if succeed else return 0 */
     
-    if (queue_empty(q))
+    if ( queue_empty(q) )
         return 0;
     
-    else {
-        q->counter--;
-        q->front++;
+    q->lCtr--;
+    q->lFront++;
 
-        return 1;
-    }
+    return 1;
 }
 
-int queue_getitem(Queue *q)
+void *queue_getitem(Queue *q)
 {
-    if (!queue_empty(q))
-        return q->values[q->front];
-
-    else {
-        /* Error case */
-
-        if(q) {
-            /* handler is initiated, we must cleanup */
-            
-            queue_cleanup(&q);
-        }
-
-        fprintf(stderr,"Queue is empty");
-        exit(EXIT_FAILURE);
-    }
+    if ( queue_empty(q) )
+        return NULL;
+    
+    return (void *)((__SIZE_TYPE__) q->data + q->lFront * q->nItemSize);
 }
 
-void queue_print(Queue *q)
+void queue_print(Queue *q, void (* print)(void *))
 {
-    for (int i = 0; i < queue_size(q); i++)
+    for (size_t i = 0; i < queue_size(q); i++)
     {
-        printf("Value %d => %d\n",i,q->values[i + q->front]);
+        for (size_t j = 0; j <= i; j++) printf("-");
+        printf("> ");
+        //printf("Value %d => %d\n",i,q->values[i + q->front]);
+        print( (void *)((__SIZE_TYPE__) q->data + (q->lFront + i) * q->nItemSize) );
+        puts("");
     }   
 }
+

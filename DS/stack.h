@@ -2,24 +2,28 @@
 #define _dalgo_stack
 
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 
 typedef struct
 {
-    int maxsize;
-    int top;
-    int *values;
-} STACK;
+    size_t lMaxSize;
+    size_t lTop;
+    int nItemSize;
+    unsigned char bEmpty;
+    void *data;
+} Stack;
 
 
-STACK *stack_init(int size);
-void stack_cleanup(STACK **s);
-int stack_size(STACK *s);
-int stack_empty(STACK *s);
-int stack_full(STACK *s);
-int stack_push(STACK *s,int item);
-int stack_pop(STACK *s);
-int stack_getitem(STACK *s);
-void stack_print(STACK *s);
+Stack *stack_init(size_t lMaxSize, int nItemSize);
+void stack_cleanup(Stack **s);
+size_t stack_size(Stack *s);
+int stack_empty(Stack *s);
+int stack_full(Stack *s);
+int stack_push(Stack *s, void *item);
+int stack_pop(Stack *s);
+void *stack_getitem(Stack *s);
+void stack_print(Stack *s, void (* print)(void *));
+
 
 #endif

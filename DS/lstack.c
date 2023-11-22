@@ -8,89 +8,99 @@
 
 #include "lstack.h"
 
-
-void lstack_push(STACK **s,int item)
+Stack *lstack_init()
 {
-    STACK *temp = (STACK *) malloc(sizeof(STACK));
+    Stack *s;
 
-    if (temp) {
-        if (lstack_empty(*s))   
-            temp->counter = 0;
-
-        else 
-            temp->counter = (*s)->counter + 1;
-        
-        temp->value = item;
-        temp->next = *s;
-        (*s) = temp;
-    } else {
-        if (!lstack_empty(*s)) {
-            /* stack initiated before, we must call cleanup func */
-
-            lstack_cleanup(s);
-            goto BADMEMALLOC;
-
-        } else {
-            goto BADMEMALLOC;
-        }
-
-        BADMEMALLOC :
-            fprintf(stderr,"Failed in memory allocation");
-            exit(EXIT_FAILURE);
-    }
-
-}
-
-void lstack_pop(STACK **s)
-{
-    STACK *temp;
-
-    if(!lstack_empty(*s))
+    if ( s = (Stack *) malloc( sizeof(Stack) ) )
     {
-        temp = *s;
-        (*s) = (*s)->next;
-        temp->next = NULL;
-        free(temp);
-    }
-}
-
-int lstack_size(STACK *s) {
-    return s->counter + 1;
-}
-
-int lstack_empty(STACK *s)
-{
-    return s == NULL;
-}
-
-int lstack_getitem(STACK *s)
-{
-    if (lstack_empty(s)) {
-        fprintf(stderr,"Error Can't getitem, Linked Stack is empty");
-        exit(EXIT_FAILURE);
-    } else {
-        return s->value;
-    }
-    
-}
-
-void lstack_print(STACK *s)
-{
-    STACK *temp = s;
-
-    while (!lstack_empty(temp))
-    {
-        printf("Value %d => %d\n",temp->counter,lstack_getitem(temp));
-        temp = temp->next;    
-    }
-    
-}
-
-void lstack_cleanup(STACK **s)
-{
-    while(!lstack_empty(*s))
-    {
-        lstack_pop(s);
+        s->lSize = 0;
+        s->top = NULL;
+        return s;
     }
 
+    return NULL;
+}
+
+int lstack_push(Stack *s, void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *))
+{
+    StackNode *node;
+
+    if ( !(node = malloc( sizeof(StackNode) )) )
+        return 0;
+
+    node->nSize = nItemSize;
+    node->allocate = allocate;
+    node->deallocate = deallocate;
+    node->print = print;
+    node->data = node->allocate(nItemSize);
+
+    if ( !node->data )
+        return 0;
+
+    memcpy( node->data, item, nItemSize );
+    node->next = s->top;
+    s->top = node;
+    s->lSize++;
+
+    return 1;
+}
+
+int lstack_pop(Stack *s)
+{
+    StackNode *node;
+
+    if ( lstack_empty(s) )
+        return 0;
+
+    node = s->top;
+    s->top = s->top->next;
+    node->next = NULL;
+    node->deallocate( node->data );
+    free( node );
+    s->lSize--;
+
+    return 1;
+}
+
+size_t lstack_size(Stack *s)
+{
+    return s->lSize;
+}
+
+int lstack_empty(Stack *s)
+{
+    return s->lSize == 0;
+}
+
+void *lstack_getitem(Stack *s)
+{
+    return s->top->data;
+}
+
+void lstack_print(Stack *s)
+{
+    StackNode *node;
+    size_t lSize;
+
+    node = s->top;
+    lSize = lstack_size(s);
+
+    if ( !lstack_empty(s) ) 
+        do {
+            for (size_t i = 0; i < lSize; i++) printf("-");
+            printf("> ");
+            node->print( node->data );
+            puts("");
+            lSize--;
+        } while( node = node->next );
+}
+
+void lstack_cleanup(Stack **s)
+{
+    while ( !lstack_empty( *s ) )
+        lstack_pop( *s );
+
+    free( *s );
+    ( *s ) = NULL;
 }
