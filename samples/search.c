@@ -3,7 +3,7 @@
     
     Author      => Abdallah Mohamed Elsharif
     Date        => 19-11-2023
-    Compile     => gcc -I../Algo/ ../Algo/search.c ../Algo/helpers.c search.c -o search
+    Compile     => gcc -I../Algo/ ../Algo/search.c ../Algo/helpers.c search.c -o search -lm
 */
 
 #include "search.h"
@@ -17,16 +17,16 @@ int main()
     char *programming_languages[ARRLENGTH] = { "C", "Go", "Ruby", "Assembly", "Ring" };
     int nIdx, n;
 
-    n = 40;
-    printf("Search for number %d (Linear Search)\n", n);
-    nIdx = linear_search((void *)numbers, (void *)&n, ARRLENGTH, sizeof(int), IntCmp);
+    n = 50;
+    printf("Search for number %d (Double Linear Search)\n", n);
+    nIdx = dbl_linear_search((void *)numbers, (void *)&n, ARRLENGTH, sizeof(int), IntCmp);
 
     if ( nIdx == -1 )
         printf("The number %d doesn't exist in the array\n", n);
     else 
         printf("The number %d found at %d index\n", n, nIdx);
 
-    n = 10;
+    n = 60;
     printf("\nSearch for number %d (Binary Search)\n", n);
     nIdx = binary_search((void *)numbers, (void *)&n, ARRLENGTH, sizeof(int), IntCmp);
 
@@ -35,8 +35,17 @@ int main()
     else 
         printf("The number %d found at %d index\n", n, nIdx);
 
+    n = 30;
+    printf("\nSearch for number %d (Jump Search)\n", n);
+    nIdx = jump_search((void *)numbers, (void *)&n, ARRLENGTH, sizeof(int), IntCmp);
+
+    if ( nIdx == -1 )
+        printf("The number %d doesn't exist in the array\n", n);
+    else 
+        printf("The number %d found at %d index\n", n, nIdx);
+
     char langname[] = "Rust";
-    printf("\nSearch for %s language\n", langname);
+    printf("\nSearch for %s language (Linear Search)\n", langname);
     nIdx = linear_search((void *)programming_languages, (void *)langname, ARRLENGTH, sizeof(char *), StrCmpA);
 
     if ( nIdx == -1 )
