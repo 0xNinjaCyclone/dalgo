@@ -9,8 +9,6 @@
 #include "llist.h"
 #include "helpers.h"
 
-void print_int(void *item) { printf("%d", *(int *) item); }
-void print_str(void *item) { printf("\"%s\"", (char *) item); }
 
 void main(void)
 {
@@ -19,28 +17,28 @@ void main(void)
 
     /* Append data to the end of the list */
     value = 10;
-    llist_insert(mylist, &value, sizeof(int), malloc, free, print_int, IntCmp);
+    llist_insert(mylist, &value, sizeof(int), malloc, free, IntPrint, IntCmp);
 
     value = 20;
-    llist_insert(mylist, &value, sizeof(int), malloc, free, print_int, IntCmp);
+    llist_insert(mylist, &value, sizeof(int), malloc, free, IntPrint, IntCmp);
 
     value = 30;
-    llist_insert(mylist, &value, sizeof(int), malloc, free, print_int, IntCmp);
+    llist_insert(mylist, &value, sizeof(int), malloc, free, IntPrint, IntCmp);
 
     value = 50;
-    llist_insert(mylist, &value, sizeof(int), malloc, free, print_int, IntCmp);
+    llist_insert(mylist, &value, sizeof(int), malloc, free, IntPrint, IntCmp);
 
     /* Append at the first of the list */
     value = 5;
-    llist_insert(mylist, &value, sizeof(int), malloc, free, print_int, IntCmp);
+    llist_insert(mylist, &value, sizeof(int), malloc, free, IntPrint, IntCmp);
 
     /* Append at specified positions */
     value = 4;
 
-    llist_insertAt(mylist, 4, &value, sizeof(int), malloc, free, print_int, IntCmp);
+    llist_insertAt(mylist, 4, &value, sizeof(int), malloc, free, IntPrint, IntCmp);
 
     value = 0;
-    llist_insertAt(mylist, 4, &value, sizeof(int), malloc, free, print_int, IntCmp);
+    llist_insertAt(mylist, 4, &value, sizeof(int), malloc, free, IntPrint, IntCmp);
 
     /* Multiply the first 3 items by 10 */
     for (size_t i = 0; i < 3; i++)
@@ -59,8 +57,8 @@ void main(void)
     llist_deleteAt(mylist, 2);
 
     /* Add string item */
-    char name[] = "Abdallah\0";
-    llist_insertAtFirst(mylist, name, strlen(name) + 1, malloc, free, print_str, StrCmpA);
+    char name[] = "Abdallah";
+    llist_insertAtFirst(mylist, name, strlen(name) + 1, malloc, free, StrPrintA, StrCmpA);
 
     puts("Print :");
     llist_print(mylist);

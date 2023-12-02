@@ -9,7 +9,6 @@
 #include "move.h"
 #include "helpers.h"
 
-void print_number(void *n) { printf("%d", *(int *) n); }
 
 int main(void) 
 {
@@ -17,31 +16,31 @@ int main(void)
     size_t lSize = sizeof(arr) / sizeof(int);
 
     printf("Original array = ");
-    PrintArray(arr, lSize, sizeof(int), print_number);
+    PrintArray(arr, lSize, sizeof(int), IntPrint);
 
     /* Shift the array to left */
     GLeftShift(arr, lSize, 3, sizeof(int));
 
     printf("array left     = ");
-    PrintArray(arr, lSize, sizeof(int), print_number);
+    PrintArray(arr, lSize, sizeof(int), IntPrint);
 
     /* Shift the array to right */
     GRightShift(arr, lSize, 5, sizeof(int));
 
     printf("array right    = ");
-    PrintArray(arr, lSize, sizeof(int), print_number);
+    PrintArray(arr, lSize, sizeof(int), IntPrint);
 
     /* Rotate the array to right */
     GRightRotate(arr, lSize, 5, sizeof(int));
 
     printf("rotate right   = ");
-    PrintArray(arr, lSize, sizeof(int), print_number);
+    PrintArray(arr, lSize, sizeof(int), IntPrint);
 
     /* Rotate the array to left */
     GLeftRotate(arr, lSize, 5, sizeof(int));
 
     printf("rotate left    = ");
-    PrintArray(arr, lSize, sizeof(int), print_number);
+    PrintArray(arr, lSize, sizeof(int), IntPrint);
 
     return 0;
 }

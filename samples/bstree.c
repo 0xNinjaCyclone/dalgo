@@ -9,7 +9,6 @@
 #include "bstree.h"
 #include "helpers.h"
 
-void print_int(void *item) { printf("%d", *(int *) item); }
 
 int main()
 {
@@ -17,7 +16,7 @@ int main()
     int value;
 
     /* Initialize the binary search tree */
-    t = bst_init( sizeof(int), malloc, free, print_int, IntCmp );
+    t = bst_init( sizeof(int), malloc, free, IntPrint, IntCmp );
 
     value = 10;
     bst_insert(t, &value);

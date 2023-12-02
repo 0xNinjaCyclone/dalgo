@@ -3,12 +3,12 @@
     
     Author      => Abdallah Mohamed Elsharif
     Date        => 12-12-2021
-    Compile     => gcc -I../DS/ ../DS/queue.c queue.c -o queue
+    Compile     => gcc -I../DS/ -I../Algo/ ../Algo/helpers.c ../DS/queue.c queue.c -o queue
 */
 
 #include "queue.h"
+#include "helpers.h"
 
-void print(void *item) { printf("%d", *(int *)item); }
 
 int main(void)
 {
@@ -29,7 +29,7 @@ int main(void)
 
     }
 
-    queue_print(myqueue, print);
+    queue_print(myqueue, IntPrint);
     printf("\nFront value = %d, Size = %d\n", *(int *) queue_getitem(myqueue), queue_size(myqueue));
 
     queue_cleanup(&myqueue); /* we had better call this func */

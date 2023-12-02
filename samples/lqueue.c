@@ -3,13 +3,13 @@
     
     Author      => Abdallah Mohamed Elsharif
     Date        => 12-12-2021
-    Compile     => gcc -I../DS/ ../DS/lqueue.c lqueue.c -o lqueue
+    Compile     => gcc -I../DS/ -I../Algo/ ../Algo/helpers.c ../DS/lqueue.c lqueue.c -o lqueue
 */
 
 
 #include "lqueue.h"
+#include "helpers.h"
 
-void print(void *item) { printf("%d", *(int *)item); }
 
 int main(void)
 {
@@ -17,18 +17,18 @@ int main(void)
     int value;
 
     value = 1;
-    lqueue_en(myqueue, &value, sizeof(int), malloc, free, print);
+    lqueue_en(myqueue, &value, sizeof(int), malloc, free, IntPrint);
     
     value = 21;
-    lqueue_en(myqueue, &value, sizeof(int), malloc, free, print);
+    lqueue_en(myqueue, &value, sizeof(int), malloc, free, IntPrint);
     
     value = 13;
-    lqueue_en(myqueue, &value, sizeof(int), malloc, free, print);
+    lqueue_en(myqueue, &value, sizeof(int), malloc, free, IntPrint);
 
     lqueue_de(myqueue); /* Remove first item */
     
     value = 14;
-    lqueue_en(myqueue, &value, sizeof(int), malloc, free, print);
+    lqueue_en(myqueue, &value, sizeof(int), malloc, free, IntPrint);
 
     lqueue_print(myqueue);
     printf("\nFront = %d, Rear = %d, Size = %d\n", *(int *) lqueue_getitem(myqueue),

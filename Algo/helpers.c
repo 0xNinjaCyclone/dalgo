@@ -148,6 +148,19 @@ int StrCmpW(void *x, void *y)
     );
 }
 
+void BytePrint(void *x) { printf("0x%x", *(unsigned char *)x); }
+void CharPrintA(void *x) { printf("%c", *(char *)x); }
+void CharPrintW(void *x) { wprintf(L"%c", *(wchar_t *)x); }
+void ShortPrint(void *x) { printf("%hi", *(short *)x); }
+void UShortPrint(void *x) { printf("%hu", *(unsigned short *)x); }
+void IntPrint(void *x) { printf("%d", *(int *)x); }
+void UIntPrint(void *x) { printf("%u", *(unsigned int *)x); }
+void LongPrint(void *x) { printf("%ld", *(long *)x); }
+void ULongPrint(void *x) { printf("%lu", *(unsigned long *)x); }
+void StrPrintA(void *x) { printf("\"%s\"", (char *)x); }
+void StrPrintW(void *x) { wprintf(L"\"%s\"", (wchar_t *)x); }
+
+
 wchar_t *WideStrFromAnsi(char *cpStr, size_t lSize)
 {
     wchar_t *wpStr = NULL;

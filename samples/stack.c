@@ -3,12 +3,12 @@
     
     Author      => Abdallah Mohamed Elsharif
     Date        => 12-12-2021
-    Compile     => gcc -I../DS/ ../DS/stack.c stack.c -o stack
+    Compile     => gcc -I../DS/ -I../Algo/ ../Algo/helpers.c  ../DS/stack.c stack.c -o stack
 */
 
 #include "stack.h"
+#include "helpers.h"
 
-void print(void *item) { printf("%d", *(int *)item); }
 
 int main() {
 
@@ -28,7 +28,7 @@ int main() {
         }
     }
 
-    stack_print(mystack, print);
+    stack_print(mystack, IntPrint);
     printf("\nTop item = %d, Top value = %d, Size = %d\n",
             *(int *)stack_getitem(mystack), mystack->lTop, stack_size(mystack));
 

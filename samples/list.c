@@ -10,7 +10,6 @@
 #include "list.h"
 #include "helpers.h"
 
-void print(void *item) { printf("%d", *(int *)item); }
 
 void main(void)
 {
@@ -49,7 +48,7 @@ void main(void)
     
     /* Print all list items */
     puts("\nPrint :");
-    list_print(mylist, print);
+    list_print(mylist, IntPrint);
 
     /* Search */
     printf("\n(Search) Enter an item :");
@@ -69,7 +68,7 @@ void main(void)
     list_reverse(mylist);
 
     /* Print again to see reversed list */
-    list_print(mylist, print);
+    list_print(mylist, IntPrint);
 
     /* Print some data */
     printf("\nLast value = %d, Size = %d\n", *(int *) list_getitem(mylist), list_size(mylist));

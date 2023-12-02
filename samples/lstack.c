@@ -3,12 +3,12 @@
     
     Author      => Abdallah Mohamed Elsharif
     Date        => 12-12-2021
-    Compile     => gcc -I../DS/ ../DS/lstack.c lstack.c -o lstack
+    Compile     => gcc -I../DS/ -I../Algo/ ../Algo/helpers.c ../DS/lstack.c lstack.c -o lstack
 */
 
 #include "lstack.h"
+#include "helpers.h"
 
-void print(void *data) { printf("%d", *(int *)data); }
 
 int main(void)
 {
@@ -18,24 +18,24 @@ int main(void)
     mystack = lstack_init();
 
     value = 5;
-    lstack_push(mystack, &value, sizeof(int), malloc, free, print);
+    lstack_push(mystack, &value, sizeof(int), malloc, free, IntPrint);
     lstack_pop(mystack); /* Remove last item */
 
     value = 15;
-    lstack_push(mystack, &value, sizeof(int), malloc, free, print);
+    lstack_push(mystack, &value, sizeof(int), malloc, free, IntPrint);
 
     value = 5;
-    lstack_push(mystack, &value, sizeof(int), malloc, free, print);
+    lstack_push(mystack, &value, sizeof(int), malloc, free, IntPrint);
 
     value = 7;
-    lstack_push(mystack, &value, sizeof(int), malloc, free, print);
+    lstack_push(mystack, &value, sizeof(int), malloc, free, IntPrint);
 
     value = 9;
-    lstack_push(mystack, &value, sizeof(int), malloc, free, print);
+    lstack_push(mystack, &value, sizeof(int), malloc, free, IntPrint);
 
 
     value = 150;
-    lstack_push(mystack, &value, sizeof(int), malloc, free, print);
+    lstack_push(mystack, &value, sizeof(int), malloc, free, IntPrint);
 
     lstack_print(mystack);
 

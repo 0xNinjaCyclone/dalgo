@@ -9,21 +9,21 @@
 #include "sort.h"
 #include "helpers.h"
 
-void print_number(void *n) { printf("%d", *(int *) n); }
 
 int main(void) 
 {
     int arr[] = {1,7,15,2,64,82,1,46,48,01,23,14,5,36,3};
     size_t lSize = sizeof(arr) / sizeof(int);
 
-    printf("Original array = ");
-    PrintArray(arr, lSize, sizeof(int), print_number);
-
+    printf("Original array       = ");
+    PrintArray(arr, lSize, sizeof(int), IntPrint);
+    
     /* Sort array */
-    selection_sort(arr, lSize, sizeof(int), IntCmp);
+    //selection_sort(arr, lSize, sizeof(int), IntCmp);
+    quick_sort(arr, lSize, sizeof(int), IntCmp);
 
-    printf("Sorted array   = ");
-    PrintArray(arr, lSize, sizeof(int), print_number);
+    printf("Sorted array         = ");
+    PrintArray(arr, lSize, sizeof(int), IntPrint);
 
     return 0;
 }

@@ -25,6 +25,18 @@ int GenericStrCmp(void *x, void *y, size_t lSizeX, size_t lSizeY, size_t nItemSi
 int StrCmpA(void *x, void *y);
 int StrCmpW(void *x, void *y);
 
+void BytePrint(void *x);
+void CharPrintA(void *x);
+void CharPrintA(void *x);
+void ShortPrint(void *x);
+void UShortPrint(void *x);
+void IntPrint(void *x);
+void UIntPrint(void *x);
+void LongPrint(void *x);
+void ULongPrint(void *x);
+void StrPrintA(void *x);
+void StrPrintW(void *x);
+
 wchar_t *WideStrFromAnsi(char *cpStr, size_t lSize);
 unsigned int calc_GCD(unsigned int a, unsigned int b);
 
