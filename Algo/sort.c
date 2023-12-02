@@ -54,6 +54,35 @@ void bubble_sort(void *data, size_t lSize, int nItemSize, int (* compare)(void *
     
 }
 
+void double_sort(void *data, size_t lSize, int nItemSize, int (* compare)(void *, void *))
+{
+    for (size_t lCtr = 0; lCtr < (lSize - 1) / 2 + 1; lCtr++)
+    {
+        for (size_t lIdx = 0; lIdx < lSize - lCtr - 1; lIdx++)
+        {
+            if (compare(
+                (void *)((__SIZE_TYPE__) data + lIdx * nItemSize),
+                (void *)((__SIZE_TYPE__) data + (lIdx + 1) * nItemSize)
+            ) > 0)
+                GSwap(
+                    (void *)((__SIZE_TYPE__) data + lIdx * nItemSize),
+                    (void *)((__SIZE_TYPE__) data + (lIdx + 1) * nItemSize),
+                    nItemSize
+                );
+
+            if (compare(
+                (void *)((__SIZE_TYPE__) data + (lSize - 2 - lIdx) * nItemSize),
+                (void *)((__SIZE_TYPE__) data + (lSize - 1 - lIdx) * nItemSize)
+            ) > 0)
+                GSwap(
+                    (void *)((__SIZE_TYPE__) data + (lSize - 2 - lIdx) * nItemSize),
+                    (void *)((__SIZE_TYPE__) data + (lSize - 1 - lIdx) * nItemSize),
+                    nItemSize
+                );
+        }
+    }
+}
+
 void insertion_sort(void *data, size_t lSize, int nItemSize, int (* compare)(void *, void *))
 {
     void *pKey;
@@ -123,7 +152,7 @@ size_t partition(
 
 void quick_sort(void *data, size_t lSize, int nItemSize, int (* compare)(void *, void *))
 {
-    if ( lSize == 0 ) return;
+    if ( lSize == 0 || lSize == 1 ) return;
     quick_sort2(data, nItemSize, 0, lSize - 1, compare);
 }
 
@@ -140,4 +169,95 @@ void quick_sort2(void *data, int nItemSize, size_t lStart, size_t lEnd, int (* c
 
     // sort the right subarray.
     quick_sort2(data, nItemSize, lPivotIdx, lEnd, compare);
+}
+
+void merge(
+    void *data, // out
+    int nItemSize,
+    size_t lStart,
+    size_t lMiddle,
+    size_t lEnd,
+    int (* compare)(void *, void *)
+) {
+    void *pLeft, *pRight;
+    size_t lLeftIdx, lRightIdx, lLeftSize, lRightSize, lIdx;
+
+    // Calculate the size of each subarray
+    lLeftSize = lMiddle - lStart + 1;
+    lRightSize = lEnd - lMiddle;
+
+    // Initial value for indexes
+    lLeftIdx = lRightIdx = 0;
+    lIdx = lStart;
+
+    if ( !(pLeft = malloc(lLeftSize * nItemSize)) )
+        return;
+
+    if ( !(pRight = malloc(lRightSize * nItemSize)) )
+        return;
+
+    /* Seperate the array to left and right */
+    memcpy(pLeft, (void *)((__SIZE_TYPE__) data + lStart * nItemSize), lLeftSize * nItemSize);
+    memcpy(pRight, (void *)((__SIZE_TYPE__) data + (lMiddle + 1) * nItemSize), lRightSize * nItemSize);
+
+
+    while ( lLeftIdx < lLeftSize && lRightIdx < lRightSize )
+    {
+        if (compare(
+            (void *)((__SIZE_TYPE__) pLeft + lLeftIdx * nItemSize),
+            (void *)((__SIZE_TYPE__) pRight + lRightIdx * nItemSize)
+        ) <= 0)
+            memcpy(
+                (void *)((__SIZE_TYPE__) data + lIdx * nItemSize),
+                (void *)((__SIZE_TYPE__) pLeft + lLeftIdx++ * nItemSize),
+                nItemSize
+            );
+
+        else 
+            memcpy(
+                (void *)((__SIZE_TYPE__) data + lIdx * nItemSize),
+                (void *)((__SIZE_TYPE__) pRight + lRightIdx++ * nItemSize),
+                nItemSize
+            );
+
+        lIdx++;
+    }
+
+    // Copy the remaining elements of the left subarray
+    while ( lLeftIdx < lLeftSize )
+        memcpy(
+            (void *)((__SIZE_TYPE__) data + lIdx++ * nItemSize),
+            (void *)((__SIZE_TYPE__) pLeft + lLeftIdx++ * nItemSize),
+            nItemSize
+        );
+    
+    // Copy the remaining elements of the right subarray
+    while ( lRightIdx < lRightSize )
+        memcpy(
+            (void *)((__SIZE_TYPE__) data + lIdx++ * nItemSize),
+            (void *)((__SIZE_TYPE__) pRight + lRightIdx++ * nItemSize),
+            nItemSize
+        );
+
+    free(pLeft);
+    free(pRight);
+    
+}
+
+void merge_sort(void *data, size_t lSize, int nItemSize, int (* compare)(void *, void *))
+{
+    if ( lSize == 0 || lSize == 1 ) return;
+    merge_sort2(data, nItemSize, 0, lSize - 1, compare);
+}
+
+void merge_sort2(void *data, int nItemSize, size_t lStart, size_t lEnd, int (* compare)(void *, void *))
+{
+    if ( lStart >= lEnd ) return;
+
+    size_t lMiddle;
+    lMiddle = (lStart + lEnd) / 2;
+    merge_sort2(data, nItemSize, lStart, lMiddle, compare);
+    merge_sort2(data, nItemSize, lMiddle + 1, lEnd, compare);
+    merge(data, nItemSize, lStart, lMiddle, lEnd, compare);
+
 }

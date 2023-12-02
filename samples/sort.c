@@ -19,8 +19,7 @@ int main(void)
     PrintArray(arr, lSize, sizeof(int), IntPrint);
     
     /* Sort array */
-    //selection_sort(arr, lSize, sizeof(int), IntCmp);
-    quick_sort(arr, lSize, sizeof(int), IntCmp);
+    merge_sort(arr, lSize, sizeof(int), IntCmp);
 
     printf("Sorted array         = ");
     PrintArray(arr, lSize, sizeof(int), IntPrint);
