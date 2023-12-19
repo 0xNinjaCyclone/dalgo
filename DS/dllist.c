@@ -1,17 +1,17 @@
 /*
-    Linked List Implementation
+    Doubly Linked List Implementation
     
     Author      => Abdallah Mohamed Elsharif
-    Date        => 12-2-2022
+    Date        => 18-12-2023
 */
 
-#include "llist.h"
+#include "dllist.h"
 
-List *llist_init()
+DoublyLinkedList *dllist_init()
 {
-    List *l;
+    DoublyLinkedList *l;
 
-    if ( l = malloc( sizeof(List) ) )
+    if ( l = malloc( sizeof(DoublyLinkedList) ) )
     {
         l->first = l->last = NULL;
         l->lSize = 0;
@@ -21,25 +21,26 @@ List *llist_init()
     return NULL;
 }
 
-size_t llist_size(List *l)
+size_t dllist_size(DoublyLinkedList *l)
 {
     return l->lSize;
 }
 
-int llist_empty(List *l)
+int dllist_empty(DoublyLinkedList *l)
 {
-    return !l->first || llist_size(l) == 0;
+    return !l->first || dllist_size(l) == 0;
 }
 
-int llist_insert(List *l, void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *))
+int dllist_insert(DoublyLinkedList *l, void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *))
 {
-    LNode *node;
+    DLNode *node;
 
     if ( node = build_node(item, nItemSize, allocate, deallocate, print, compare) )
     {
-        if ( llist_empty(l) )
+        if ( dllist_empty(l) )
             l->first = l->last = node;
         else {
+            node->prev = l->last;
             l->last->next = node;
             l->last = node;
         }
@@ -52,16 +53,17 @@ int llist_insert(List *l, void *item, int nItemSize, void *(* allocate)(size_t),
     return 0;
 }
 
-int llist_insertAtFirst(List *l, void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *))
+int dllist_insertAtFirst(DoublyLinkedList *l, void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *))
 {
-    LNode *node;
+    DLNode *node;
 
     if ( node = build_node(item, nItemSize, allocate, deallocate, print, compare) )
     {
-        if ( llist_empty(l) )
+        if ( dllist_empty(l) )
             l->first = l->last = node;
         else {
             node->next = l->first;
+            node->prev = node;
             l->first = node;
         }
 
@@ -73,18 +75,18 @@ int llist_insertAtFirst(List *l, void *item, int nItemSize, void *(* allocate)(s
     return 0;
 }
 
-int llist_insertAt(List *l, size_t lIdx, void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *))
+int dllist_insertAt(DoublyLinkedList *l, size_t lIdx, void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *))
 {
-    LNode *node, *curr;
+    DLNode *node, *curr;
 
-    if ( lIdx < 0 || lIdx > llist_size(l) )
+    if ( lIdx < 0 || lIdx > dllist_size(l) )
         return 0;
 
     if ( lIdx == 0 )
-        return llist_insertAtFirst(l, item, nItemSize, allocate, deallocate, print, compare);
+        return dllist_insertAtFirst(l, item, nItemSize, allocate, deallocate, print, compare);
 
-    else if ( lIdx == llist_size(l) )
-        return llist_insert(l, item, nItemSize, allocate, deallocate, print, compare);
+    else if ( lIdx == dllist_size(l) )
+        return dllist_insert(l, item, nItemSize, allocate, deallocate, print, compare);
 
     else {
         /* Build the node and return if built failed */
@@ -95,6 +97,8 @@ int llist_insertAt(List *l, size_t lIdx, void *item, int nItemSize, void *(* all
         for (curr = l->first; --lIdx - 1; curr = curr->next);
 
         node->next = curr->next;
+        node->prev = curr;
+        curr->next->prev = node;
         curr->next = node;
         l->lSize++;
 
@@ -102,17 +106,17 @@ int llist_insertAt(List *l, size_t lIdx, void *item, int nItemSize, void *(* all
     }
 }
 
-int llist_updateAt(List *l, size_t lIdx, void *item)
+int dllist_updateAt(DoublyLinkedList *l, size_t lIdx, void *item)
 {
-    LNode *node;
+    DLNode *node;
 
-    if ( lIdx < 0 || lIdx > llist_size(l) )
+    if ( lIdx < 0 || lIdx > dllist_size(l) )
         return 0;
 
     if ( lIdx == 0 )
         memcpy( l->first->data, item, l->first->nSize );
 
-    else if ( lIdx == llist_size(l) - 1 )
+    else if ( lIdx == dllist_size(l) - 1 )
         memcpy( l->last->data, item, l->last->nSize );
 
     else {
@@ -125,17 +129,17 @@ int llist_updateAt(List *l, size_t lIdx, void *item)
     return 1;
 }
 
-void *llist_getitemAt(List *l, size_t lIdx)
+void *dllist_getitemAt(DoublyLinkedList *l, size_t lIdx)
 {
-    LNode *node;
+    DLNode *node;
 
-    if ( lIdx < 0 || lIdx > llist_size(l) )
+    if ( lIdx < 0 || lIdx > dllist_size(l) )
         return NULL;
 
     if ( lIdx == 0 )
         return l->first->data;
 
-    else if ( lIdx == llist_size(l) - 1 )
+    else if ( lIdx == dllist_size(l) - 1 )
         return l->last->data;
 
     else {
@@ -147,17 +151,16 @@ void *llist_getitemAt(List *l, size_t lIdx)
 
 }
 
-int llist_delete(List *l)
+int dllist_delete(DoublyLinkedList *l)
 {
     /* Delete the last item, return 1 if succeed else 0 */
 
-    LNode *prevLast, *temp;
-    size_t lSize;
+    DLNode *temp;
 
-    if ( llist_empty(l) )
+    if ( dllist_empty(l) )
         return 0;
 
-    if ( llist_size(l) == 1 ) {
+    if ( dllist_size(l) == 1 ) {
         destroy_node( l->first );
         l->first = l->last = NULL;
         l->lSize--;
@@ -165,31 +168,26 @@ int llist_delete(List *l)
         return 1;
     }
 
-    lSize = llist_size(l);
-
-    /* move to the node before last one */
-    for (prevLast = l->first; --lSize - 1; prevLast = prevLast->next);
-
     temp = l->last;
-    l->last = prevLast;
-    prevLast->next = NULL;
+    l->last = l->last->prev;
+    l->last->next = NULL;
     destroy_node( temp );
     l->lSize--;
 
     return 1;
 }
 
-int llist_deleteAtFirst(List *l)
+int dllist_deleteAtFirst(DoublyLinkedList *l)
 {
     /* Delete the first item, return 1 if succeed else 0 */
 
-    LNode *temp;
+    DLNode *temp;
 
-    if ( llist_empty(l) )
+    if ( dllist_empty(l) )
         return 0;
 
     /* if there is only one item */
-    if ( llist_size(l) == 1 ) {
+    if ( dllist_size(l) == 1 ) {
         destroy_node( l->first );
         l->first = l->last = NULL;
         l->lSize--;
@@ -199,24 +197,25 @@ int llist_deleteAtFirst(List *l)
 
     temp = l->first;
     l->first = l->first->next;
+    l->first->prev = NULL;
     destroy_node( temp );
     l->lSize--;
 
     return 1;
 }
 
-int llist_deleteAt(List *l, size_t lIdx)
+int dllist_deleteAt(DoublyLinkedList *l, size_t lIdx)
 {
-    LNode *prev, *temp;
+    DLNode *prev, *temp;
 
-    if ( llist_empty(l) || lIdx >= llist_size(l) )
+    if ( dllist_empty(l) || lIdx >= dllist_size(l) )
         return 0;
 
-    if (lIdx == 0)
-        return llist_deleteAtFirst(l);
+    if ( lIdx == 0 )
+        return dllist_deleteAtFirst(l);
 
-    else if (lIdx == llist_size(l) - 1)
-        return llist_delete(l);
+    else if ( lIdx == dllist_size(l) - 1 )
+        return dllist_delete(l);
 
     else {
         /* move to the node before target */
@@ -224,6 +223,7 @@ int llist_deleteAt(List *l, size_t lIdx)
 
         temp = prev->next; /* This is the target item */
         prev->next = temp->next;
+        temp->next->prev = prev;
         destroy_node( temp );
         l->lSize--;
 
@@ -231,62 +231,23 @@ int llist_deleteAt(List *l, size_t lIdx)
     }
 }
 
-long llist_search(List *l, void *item, int nItemSize)
+void dllist_clear(DoublyLinkedList *l)
 {
-    /* return -1 if didn't find it or positon of the item */
-
-    LNode *temp = l->first;
-
-    if (llist_empty(l))
-        return -1;
-
-    for (size_t lPos = 0; temp; temp = temp->next, lPos++)
-        if ( nItemSize == temp->nSize && temp->compare(temp->data, item) == 0 )
-            return lPos;
-    
-    return -1;
-}
-
-void llist_reverse(List *l)
-{
-    LNode *prev, *curr, *next;
-
-    if ( llist_empty(l) || llist_size(l) == 1 )
-        return;
-
-    prev = NULL;
-    curr = l->first;
-    next = curr->next;
-
-    while ( next )
-    {
-        next = curr->next;
-        curr->next = prev;
-        prev = curr;
-        curr = next;
-    }
-
-    l->first = prev;
-    
-}
-
-void llist_clear(List *l)
-{
-    while ( !llist_empty(l) )
+    while ( !dllist_empty(l) )
     {
         /* 
             (deleteAtFirst) is the best function to do that 
             because its complexity is (Big O(1)) but (delete || deleteAt) is (Big O(n))
         */
         
-        llist_deleteAtFirst( l );
+        dllist_deleteAtFirst( l );
     }
 }
 
-void llist_cleanup(List **l)
+void dllist_cleanup(DoublyLinkedList **l)
 {
     /* Free all nodes */
-    llist_clear( *l );
+    dllist_clear( *l );
 
     /* Free list handler */
     free( *l );
@@ -295,9 +256,9 @@ void llist_cleanup(List **l)
     ( *l ) = NULL;
 }
 
-void llist_print(List *l)
+void dllist_print(DoublyLinkedList *l)
 {
-    LNode *node;
+    DLNode *node;
 
     printf("[ ");
 
@@ -312,11 +273,11 @@ void llist_print(List *l)
     printf(" ]");
 }
 
-LNode *build_node(void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *))
+DLNode *build_node(void *item, int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *))
 {
-    LNode *node;
+    DLNode *node;
 
-    if ( node = malloc( sizeof(LNode) ) )
+    if ( node = malloc( sizeof(DLNode) ) )
     {
         node->allocate = allocate;
         node->deallocate = deallocate;
@@ -324,6 +285,7 @@ LNode *build_node(void *item, int nItemSize, void *(* allocate)(size_t), void (*
         node->compare = compare;
         node->nSize = nItemSize;
         node->next = NULL;
+        node->prev = NULL;
         node->data = node->allocate( node->nSize );
 
         if ( !node->data )
@@ -340,9 +302,8 @@ LNode *build_node(void *item, int nItemSize, void *(* allocate)(size_t), void (*
     return NULL;
 }
 
-void destroy_node(LNode *node)
+void destroy_node(DLNode *node)
 {
     node->deallocate( node->data );
     free( node );
 }
-
