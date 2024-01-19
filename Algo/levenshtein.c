@@ -5,7 +5,7 @@
 long levenshtein_distance(void *pStr1, size_t lStr1Size, void *pStr2, size_t lStr2Size, int nItemSize, int (* charcmp)(void *, void *))
 {
     void *pSmaller, *pLargger;
-    size_t *pPriv, *pCurr, *pTemp;
+    size_t *pPrev, *pCurr, *pTemp;
     size_t lSmallerSize, lLarggerSize, lDistance, lSubstitutions;
 
     if ( lStr1Size > lStr2Size )
@@ -21,11 +21,11 @@ long levenshtein_distance(void *pStr1, size_t lStr1Size, void *pStr2, size_t lSt
         lSmallerSize = lStr1Size;
     }
 
-    if ( !(pPriv = (size_t *) malloc( (lSmallerSize + 1) * sizeof(size_t) )) )
+    if ( !(pPrev = (size_t *) malloc( (lSmallerSize + 1) * sizeof(size_t) )) )
         return -1;
 
     for (size_t i = 0; i <= lSmallerSize; i++)
-        pPriv[i] = i;
+        pPrev[i] = i;
 
     for (size_t lIdx1 = 0; lIdx1 < lLarggerSize; lIdx1++)
     {
@@ -37,12 +37,12 @@ long levenshtein_distance(void *pStr1, size_t lStr1Size, void *pStr2, size_t lSt
 
         for (size_t lIdx2 = 0; lIdx2 < lSmallerSize; lIdx2++)
         {
-            lDistance = pPriv[lIdx2 + 1] + 1;
+            lDistance = pPrev[lIdx2 + 1] + 1;
 
             if ( lDistance > (pCurr[lIdx2] + 1) )
                 lDistance = pCurr[lIdx2] + 1;
 
-            lSubstitutions = pPriv[lIdx2] + ( charcmp(
+            lSubstitutions = pPrev[lIdx2] + ( charcmp(
                 (void *)((__SIZE_TYPE__) pLargger + lIdx1 * nItemSize),
                 (void *)((__SIZE_TYPE__) pSmaller + lIdx2 * nItemSize)
             ) != 0 );
@@ -54,14 +54,14 @@ long levenshtein_distance(void *pStr1, size_t lStr1Size, void *pStr2, size_t lSt
             
         }
 
-        pTemp = pPriv;
-        pPriv = pCurr;
+        pTemp = pPrev;
+        pPrev = pCurr;
 
         free( pTemp );
     }
 
-    lDistance = pPriv[lSmallerSize];
-    free(pPriv);
+    lDistance = pPrev[lSmallerSize];
+    free(pPrev);
     
     return lDistance;
 }
