@@ -93,8 +93,23 @@ int dllist_insertAt(DoublyLinkedList *l, size_t lIdx, void *item, int nItemSize,
         if ( !(node = build_node(item, nItemSize, allocate, deallocate, print, compare)) )
             return 0;
 
-        /* Move to the item before the target */
-        for (curr = l->first; --lIdx - 1; curr = curr->next);
+        /* Find the item before the target */
+        if ( lIdx <= dllist_size(l) / 2 )
+            /* Move from the beginning */
+            for (
+                curr = l->first; 
+                --lIdx; 
+                curr = curr->next
+            );
+
+        else 
+            /* Search backword */
+            for (
+                lIdx -= dllist_size(l),
+                curr = l->last;
+                lIdx++;
+                curr = curr->prev
+            );
 
         node->next = curr->next;
         node->prev = curr;
@@ -120,8 +135,23 @@ int dllist_updateAt(DoublyLinkedList *l, size_t lIdx, void *item)
         memcpy( l->last->data, item, l->last->nSize );
 
     else {
-        /* move to the target node */
-        for (node = l->first; --lIdx; node = node->next);
+        /* Find the target node */
+        if ( lIdx <= dllist_size(l) / 2 )
+            /* Search from the beginning */
+            for (
+                node = l->first; 
+                lIdx--; 
+                node = node->next
+            );
+
+        else 
+            /* Search backword */
+            for (
+                lIdx -= dllist_size(l),
+                node = l->last;
+                ++lIdx;
+                node = node->prev
+            );
 
         memcpy( node->data, item, node->nSize );
     }   
@@ -143,8 +173,23 @@ void *dllist_getitemAt(DoublyLinkedList *l, size_t lIdx)
         return l->last->data;
 
     else {
-        /* move to the target node */
-        for (node = l->first; lIdx--; node = node->next);
+        /* Find the target node */
+
+        if ( lIdx <= dllist_size(l) / 2 )
+            for (
+                node = l->first; 
+                lIdx--; 
+                node = node->next
+            );
+
+        else 
+            /* Search backword */
+            for (
+                lIdx -= dllist_size(l),
+                node = l->last;
+                ++lIdx;
+                node = node->prev
+            );
 
         return node->data;
     }   
@@ -218,8 +263,22 @@ int dllist_deleteAt(DoublyLinkedList *l, size_t lIdx)
         return dllist_delete(l);
 
     else {
-        /* move to the node before target */
-        for (prev = l->first; --lIdx - 1; prev = prev->next);
+        /* Find the node before target */
+        if ( lIdx <= dllist_size(l) / 2 )
+            for (
+                prev = l->first; 
+                --lIdx; 
+                prev = prev->next
+            );
+
+        else 
+            /* Search backword */
+            for (
+                lIdx -= dllist_size(l),
+                prev = l->last;
+                lIdx++;
+                prev = prev->prev
+            );
 
         temp = prev->next; /* This is the target item */
         prev->next = temp->next;

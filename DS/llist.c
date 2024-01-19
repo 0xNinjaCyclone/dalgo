@@ -92,7 +92,11 @@ int llist_insertAt(List *l, size_t lIdx, void *item, int nItemSize, void *(* all
             return 0;
 
         /* Move to the item before the target */
-        for (curr = l->first; --lIdx - 1; curr = curr->next);
+        for (
+            curr = l->first; 
+            --lIdx; 
+            curr = curr->next
+        );
 
         node->next = curr->next;
         curr->next = node;
@@ -117,7 +121,11 @@ int llist_updateAt(List *l, size_t lIdx, void *item)
 
     else {
         /* move to the target node */
-        for (node = l->first; --lIdx; node = node->next);
+        for (
+            node = l->first; 
+            lIdx--; 
+            node = node->next
+        );
 
         memcpy( node->data, item, node->nSize );
     }   
@@ -219,8 +227,12 @@ int llist_deleteAt(List *l, size_t lIdx)
         return llist_delete(l);
 
     else {
-        /* move to the node before target */
-        for (prev = l->first; --lIdx - 1; prev = prev->next);
+        /* Move to the node before target */
+        for (
+            prev = l->first; 
+            --lIdx; 
+            prev = prev->next
+        );
 
         temp = prev->next; /* This is the target item */
         prev->next = temp->next;
