@@ -29,9 +29,10 @@ int main()
 {
     Hash *htable;
     Key *pKey;
+    Item *pItem;
     void *pData;
     int nKey, nValue, nRet;
-    size_t lMaxSize = 10;
+    size_t lMaxSize = 10, lPos = 0;
 
     nRet = EXIT_FAILURE;
 
@@ -84,11 +85,16 @@ int main()
     if ( ! pKey ) goto LEAVE;
     // 3- Get the item by the key
     if ( pData = hash_get(htable, pKey) )
-        printf("\nhash[%d] = %d\n", nKey, *(int *) pData);
+        printf("\n[hash_get] hash[%d] = %d\n\n", nKey, *(int *) pData);
     else
-        printf("\nKey %d doesn't exist in the hashtable\n", nKey);
+        printf("\nKey %d doesn't exist in the hashtable\n\n", nKey);
     // 4- Destroy the key
     key_destroy( &pKey );
+
+    // Iterate over all nodes
+    while ( hash_next(htable, &lPos, &pKey, &pItem) )
+        printf("[hash_next] htable[%d] => %d\n", *(int *) pKey->data, *(int *) pItem->data);
+    
 
     nRet = EXIT_SUCCESS;
 

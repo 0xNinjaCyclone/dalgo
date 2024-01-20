@@ -95,7 +95,6 @@ Node *node_new(Key *k, Item *i)
 int node_compare(void *node, void *key)
 {
     Node *n;
-    int r;
     
     // We store the addresses of the nodes, so we dereferencing in this way
     n = *(Node **) node; 
@@ -191,9 +190,8 @@ int hash_insert(Hash *h, Key *k, Item *i)
             // Find an unused entry next to the entry
             while ( lCtr-- && *(++temp) );
             
-
             // WHAT THE FUCK IF ALL ENTRIES ON THE RIGHT WERE UNAVAILABLE ???
-            if ( lCtr < 0 )
+            if ( lCtr == -1 )
             {
                 // Pointing now to the suitable entry
                 temp = h->data + hash;
@@ -302,21 +300,16 @@ Item *hash_get2(Hash *h, Key *k)
             // If the node was not on the right
             if ( lPos == h->lMaxSize )
             {
-                // If we were searching from the beginning 
-                if ( hash == 0 )
-                    return 0;
-
                 // Pointing now to the suitable entry
-                ent = h->data[hash];
-
                 lPos = hash;
 
                 // Search backword
-                do {
-                    ent = h->data[ lPos ];
-                } while ( node_compare(&ent, (void *) k) != 0 && --lPos );
+                while ( lPos-- ) 
+                    if ( ent = h->data[lPos] )
+                        if ( node_compare(&ent, (void *) k) == 0 )
+                            break;
 
-                if ( lPos == 0 ) // Not found
+                if ( lPos == -1 ) // Not found
                     return 0;
                 
             }
@@ -327,7 +320,7 @@ Item *hash_get2(Hash *h, Key *k)
         else if ( h->type == CHAINING )
         {
             // Find the node 
-            // We must pass the node address size, not the key size because search expect a node type, not a key
+            // We must pass the node address size, not the key size because the search func expect a node type, not a key
             // However the comparison function can compare a node with a key 
             if ( (lPos = llist_search((List *) ent, (void *) k, sizeof(Node *))) == -1 )
                 return NULL; // Not found
@@ -359,8 +352,7 @@ int hash_delete(Hash *h, Key *k)
     {
         if ( h->type == REPLACEMENT )
         {
-            free( ent );
-            h->data[hash] = NULL;
+            node_destroy( (Node **) h->data + hash );
             h->lSize--;
             
             return 1;
@@ -371,13 +363,17 @@ int hash_delete(Hash *h, Key *k)
             // Pointing now to the suitable entry
             temp = h->data + hash;
 
+            // Search from the hash index 
             lPos = hash;
+
             // Find the target node
             do {
-                ent = h->data[ lPos ];
                 
                 if ( ent && node_compare(&ent, (void *) k) == 0 )
                     break;
+
+                // Next entry
+                ent = *( ++temp );
 
             } while ( ++lPos != h->lMaxSize );
             
@@ -385,26 +381,24 @@ int hash_delete(Hash *h, Key *k)
             // If the node was not on the right
             if ( lPos == h->lMaxSize )
             {
-                // Check if we were search from the beginning
-                if ( hash == 0 )
-                    return 0;
-
-                // Pointing now to the suitable entry
-                temp = h->data + hash;
-
+                // The position of the target entry
                 lPos = hash;
 
-                do {
-                    ent = *( --temp );
-                } while ( node_compare(&ent, (void *) k) != 0 && --lPos );
+                // Pointing now to the suitable entry
+                temp = h->data + lPos;
 
-                if ( lPos == 0 ) // Not found
+                // Search backword
+                while ( lPos-- ) 
+                    if ( ent = *( --temp ) )
+                        if ( node_compare(&ent, (void *) k) == 0 )
+                            break;
+
+                if ( lPos == -1 ) // Not found
                     return 0;
                 
             }
 
-            free( ent );
-            ( *temp ) = NULL;
+            node_destroy( (Node **) temp );
             h->lSize--;
 
             return 1;
