@@ -49,8 +49,10 @@ int balanced(char *expression)
             if ( !lstack_empty(container) && symbols_eq(*(char *) lstack_getitem(container), expression[i]) )
                 lstack_pop(container);
 
-            else /* Not Balanced */
+            else { /* Not Balanced */
+                lstack_cleanup(&container);
                 return 0;
+            }
         }
     }
 
