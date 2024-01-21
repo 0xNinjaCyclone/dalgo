@@ -156,11 +156,11 @@ int hash_insert(Hash *h, Key *k, Item *i)
             h->lSize++;
         } else { // Collision case
             node = (Node *) h->data[hash];
+            node->key = k;
+            node->item = i;
+
             h->lCollisions++;
         }
-
-        node->key = k;
-        node->item = i;
 
         // Insert the node into the table
         h->data[ hash ] = (void *) node;

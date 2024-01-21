@@ -25,6 +25,22 @@ int insert_int_node(Hash *htable, int nKey, int nValue)
     return hash_insert(htable, pKey, pItem);
 }
 
+int insert_str_node(Hash *htable, char *cpKey, char *cpValue)
+{
+    Key *pKey;
+    Item *pItem;
+
+    // Initialize a key instance from cpKey 
+    if ( !(pKey = key_new(cpKey, strlen(cpKey) + 1, StrPrintA, StrCmpA)) )
+        return 0;
+
+    // Initialize an item instance from cpValue 
+    if ( !(pItem = item_new(cpValue, strlen(cpValue) + 1, malloc, free, StrPrintA, StrCmpA)) )
+        return 0;
+
+    return hash_insert(htable, pKey, pItem);
+}
+
 int main()
 {
     Hash *htable;
@@ -68,11 +84,25 @@ int main()
     if ( ! pKey ) goto LEAVE;
     // 3- Call delete function 
     if ( ! hash_delete(htable, pKey) )
-    {
         printf("key %d doesn't exist in the table\n", nKey);
-    }
     // 4- Destroy the key
     key_destroy( &pKey );
+
+    // Insert a string node
+    if ( ! insert_str_node(htable, "Name", "Abdallah") )
+        puts("Failed to insert a string node");
+
+    // Insert a node with a string key and a numerical value
+    char cKey[] = "Number of nodes";
+    // 1- Initialize a key instance from cKey 
+    if ( !(pKey = key_new(cKey, sizeof(cKey), StrPrintA, StrCmpA)) )
+        goto LEAVE;
+    // 2- Initialize an item instance from the size of the table 
+    if ( !(pItem = item_new(&htable->lSize, sizeof(size_t), malloc, free, ULongPrint, ULongCmp)) )
+        goto LEAVE;
+    // 3- Insert the node into the table
+    if ( ! hash_insert(htable, pKey, pItem) )
+        puts("Failed to insert the table size into the hash table");
 
     // Display the table
     hash_print( htable );
@@ -84,8 +114,8 @@ int main()
     // 2- Check if error occured
     if ( ! pKey ) goto LEAVE;
     // 3- Get the item by the key
-    if ( pData = hash_get(htable, pKey) )
-        printf("\n[hash_get] hash[%d] = %d\n\n", nKey, *(int *) pData);
+    if ( pData = hash_get(htable, pKey) ) 
+        printf("\n[hash_get] hash[%d] => %d\n\n", nKey, *(int *) pData);
     else
         printf("\nKey %d doesn't exist in the hashtable\n\n", nKey);
     // 4- Destroy the key
@@ -93,8 +123,13 @@ int main()
 
     // Iterate over all nodes
     while ( hash_next(htable, &lPos, &pKey, &pItem) )
-        printf("[hash_next] htable[%d] => %d\n", *(int *) pKey->data, *(int *) pItem->data);
-    
+    {
+        printf("[hash_next] htable[");
+        pKey->print( pKey->data );
+        printf("] => ");
+        pItem->print( pItem->data );
+        puts(""); // Newline
+    }
 
     nRet = EXIT_SUCCESS;
 

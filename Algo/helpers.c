@@ -84,9 +84,6 @@ int GenericStrCmp(void *x, void *y, size_t lSizeX, size_t lSizeY, size_t nItemSi
     size_t lSize, lCtr;
     int nDelta;
 
-    // x actually points to another ptr, so we have to dereference it
-    x = (void *)(*(void **) x);
-
     lSize = ( lSizeX < lSizeY ) ? lSizeX : lSizeY;
     lCtr = 0;
     
@@ -129,7 +126,7 @@ int StrCmpA(void *x, void *y)
     return GenericStrCmp(
         x,
         y,
-        strlen( *(char **) x ), // x is a pointer to the string pointer, so we dereference it
+        strlen( (char *) x ), 
         strlen( (char *) y ),
         sizeof( char ),
         CharCmpA
@@ -141,11 +138,23 @@ int StrCmpW(void *x, void *y)
     return GenericStrCmp(
         x,
         y,
-        wcslen( *(wchar_t **) x ), // x is a pointer to the string pointer, so we dereference it
+        wcslen( (wchar_t *) x ),
         wcslen( (wchar_t *) y ),
         sizeof( wchar_t ),
         CharCmpW
     );
+}
+
+int StrPtrCmpA(void *x, void *y)
+{
+    // x is a pointer to the string pointer, so we dereference it
+    return StrCmpA( *(void **) x, y );
+}
+
+int StrPtrCmpW(void *x, void *y)
+{
+    // x is a pointer to the string pointer, so we dereference it
+    return StrCmpW( *(void **) x, y );
 }
 
 void BytePrint(void *x) { printf("0x%x", *(unsigned char *)x); }

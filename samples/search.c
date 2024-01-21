@@ -46,7 +46,7 @@ int main()
 
     char langname[] = "Rust";
     printf("\nSearch for %s language (Linear Search)\n", langname);
-    nIdx = linear_search((void *)programming_languages, (void *)langname, ARRLENGTH, sizeof(char *), StrCmpA);
+    nIdx = linear_search((void *)programming_languages, (void *)langname, ARRLENGTH, sizeof(char *), StrPtrCmpA);
 
     if ( nIdx == -1 )
         printf("The %s language doesn't exist in the array\n", langname);

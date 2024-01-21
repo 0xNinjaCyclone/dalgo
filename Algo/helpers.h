@@ -24,6 +24,8 @@ int ULongCmp(void *x, void *y);
 int GenericStrCmp(void *x, void *y, size_t lSizeX, size_t lSizeY, size_t nItemSize, int (* CharCmp)(void *, void *));
 int StrCmpA(void *x, void *y);
 int StrCmpW(void *x, void *y);
+int StrPtrCmpA(void *x, void *y);
+int StrPtrCmpW(void *x, void *y);
 
 void BytePrint(void *x);
 void CharPrintA(void *x);
