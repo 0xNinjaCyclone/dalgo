@@ -508,6 +508,8 @@ int hash_delete(Hash *h, Key *k)
             if ( node_compare(&ent, (void *) k) != 0 )
                 return 0; // A different key
 
+            key_destroy( &((Node *) ent)->key );
+            item_destroy( &((Node *) ent)->item );
             node_destroy( (Node **) h->data + ulHash );
             h->lSize--;
             
@@ -554,6 +556,8 @@ int hash_delete(Hash *h, Key *k)
                 
             }
 
+            key_destroy( &((Node *) ent)->key );
+            item_destroy( &((Node *) ent)->item );
             node_destroy( (Node **) temp );
             h->lSize--;
 
@@ -565,17 +569,26 @@ int hash_delete(Hash *h, Key *k)
             size_t lIdx;
 
             // Find the node
-            if ( (lIdx = llist_search((List *) ent, (void *) k, sizeof(Node *))) == -1 )
+            if ( (lIdx = llist_search2((List *) ent, (void *) k, sizeof(Node *), &ent)) == -1 )
                 return 0; // We couldn't find the node
+
+            // Deref the entry ( we have pushed the address of the entry into the list, and the list returns a ptr to our data )
+            // That's why we do dereferencing as follows
+            ent = *(void **) ent;
+
+            // Cleanup the node
+            key_destroy( &((Node *) ent)->key );
+            item_destroy( &((Node *) ent)->item );
+            node_destroy( (Node **) &ent );
             
             // Delete the node from the list
-            if ( ! llist_deleteAt((List *) ent, lIdx) )
+            if ( ! llist_deleteAt((List *) h->data[ulHash], lIdx) )
                 return 0; // Something goes wrong when deleting the node from the list
 
             // If the list becomes empty, we have to cleanup the list and mark this entry as unused
-            if ( llist_empty((List *) ent) )
+            if ( llist_empty((List *) h->data[ulHash]) )
             {
-                llist_cleanup( (List **) &ent );
+                llist_cleanup( (List **) h->data + ulHash );
                 h->data[ulHash] = NULL;
             }
 
