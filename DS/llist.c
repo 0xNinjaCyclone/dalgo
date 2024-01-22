@@ -259,6 +259,28 @@ long llist_search(List *l, void *item, int nItemSize)
     return -1;
 }
 
+long llist_search2(List *l, void *item, int nItemSize, void **pReadItem)
+{
+    /* return -1 if didn't find it or positon of the item */
+
+    LNode *temp = l->first;
+
+    if (llist_empty(l))
+        return -1;
+
+    for (size_t lPos = 0; temp; temp = temp->next, lPos++)
+        if ( nItemSize == temp->nSize && temp->compare(temp->data, item) == 0 )
+        {
+            *pReadItem = temp->data;
+            return lPos;
+        }
+
+    // Not found
+    *pReadItem = NULL;
+    
+    return -1;
+}
+
 void llist_reverse(List *l)
 {
     LNode *prev, *curr, *next;

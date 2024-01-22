@@ -29,14 +29,18 @@ Key *key_new(void *data, int nSize, void (* print)(void *), int (* compare)(void
     return NULL;
 }
 
-size_t key_hash(Key *k, size_t lMaxSize)
+int key_compare(Key *k, void *pKeyValue, int nKeySize)
 {
-    size_t hash = 0;
+    // Check if the key data type wasn't same
+    if ( k->nSize != nKeySize )
+        return k->nSize - nKeySize;
 
-    for (size_t ctr = 0; ctr < k->nSize; ctr++)
-        hash += *( (unsigned char *) k->data + ctr );
+    return k->compare(k->data, pKeyValue);
+}
 
-    return hash % lMaxSize;
+unsigned long key_hash(Key *k, size_t lMaxSize)
+{
+    return genhash( k->data, k->nSize, lMaxSize );
 }
 
 void key_destroy(Key **k)
@@ -141,21 +145,22 @@ int hash_insert(Hash *h, Key *k, Item *i)
 {
     void **temp;
     Node *node;
-    size_t hash, lCtr;
+    size_t lCtr;
+    unsigned long ulHash;
 
     // Generate a hash from the key
-    hash = key_hash( k, h->lMaxSize );
+    ulHash = key_hash( k, h->lMaxSize );
 
     if ( h->type == REPLACEMENT )
     {
-        if ( ! h->data[hash] )
+        if ( ! h->data[ulHash] )
         {
             if ( !(node = node_new(k, i)) )
                 return 0;
 
             h->lSize++;
         } else { // Collision case
-            node = (Node *) h->data[hash];
+            node = (Node *) h->data[ulHash];
 
             // Remove the old key and item 
             key_destroy( &node->key );
@@ -169,7 +174,7 @@ int hash_insert(Hash *h, Key *k, Item *i)
         }
 
         // Insert the node into the table
-        h->data[ hash ] = (void *) node;
+        h->data[ ulHash ] = (void *) node;
     }
 
     else if ( h->type == OPEN_ADDRESSING )
@@ -179,7 +184,7 @@ int hash_insert(Hash *h, Key *k, Item *i)
             return 0;
 
         // Pointing now to the suitable entry
-        temp = h->data + hash;
+        temp = h->data + ulHash;
 
         // Check whether this entry is available or not
         if ( *temp )
@@ -191,7 +196,7 @@ int hash_insert(Hash *h, Key *k, Item *i)
             // This is a f*cking collision case
             h->lCollisions++;
 
-            lCtr = h->lMaxSize - 1 - hash;
+            lCtr = h->lMaxSize - 1 - ulHash;
 
             // Find an unused entry next to the entry
             while ( lCtr-- && *(++temp) );
@@ -200,10 +205,10 @@ int hash_insert(Hash *h, Key *k, Item *i)
             if ( lCtr == -1 )
             {
                 // Pointing now to the suitable entry
-                temp = h->data + hash;
+                temp = h->data + ulHash;
 
                 // The index of the entry
-                lCtr = hash;
+                lCtr = ulHash;
 
                 // Search backword until find an available entry
                 while ( lCtr-- && *(--temp) );
@@ -223,8 +228,8 @@ int hash_insert(Hash *h, Key *k, Item *i)
     else if ( h->type == CHAINING )
     {
         // Initialize a list for this entry if was not initialized yet
-        if ( ! h->data[hash] )
-            if ( !(h->data[hash] = (void *) llist_init()) )
+        if ( ! h->data[ulHash] )
+            if ( !(h->data[ulHash] = (void *) llist_init()) )
                 return 0;
 
         // Create a node
@@ -232,17 +237,17 @@ int hash_insert(Hash *h, Key *k, Item *i)
             return 0;
 
         // Collision check
-        if ( ! llist_empty((List *) h->data[hash]) )
+        if ( ! llist_empty((List *) h->data[ulHash]) )
         {
             // Check if the given key was used before
-            if ( llist_search((List *) h->data[hash], (void *) k, sizeof(Node *)) != -1 )
+            if ( llist_search((List *) h->data[ulHash], (void *) k, sizeof(Node *)) != -1 )
                 return 0;
 
             h->lCollisions++;
         }
 
         if ( ! llist_insert(
-            (List *) h->data[hash],
+            (List *) h->data[ulHash],
             (void *) &node, // Insert the address of the node, not the node itself
             sizeof(void *),
             malloc, // malloc and free are suitable for dealing with the node address (we don't need to develop custom allocators)
@@ -262,6 +267,73 @@ int hash_insert(Hash *h, Key *k, Item *i)
     return 1;
 }
 
+int hash_update(Hash *h, Key *k, Item *i)
+{
+    void *pEntry;
+    size_t lPos;
+    unsigned long ulHash;
+
+    // Calculate the hash from the key value
+    ulHash = key_hash(k, h->lMaxSize);
+
+    // Find the target entry
+    if ( pEntry = h->data[ulHash] )
+    {
+        if ( h->type == OPEN_ADDRESSING )
+        {
+            lPos = ulHash;
+            
+            // Find the node
+            do {
+                pEntry = h->data[ lPos ];
+                
+                if ( pEntry && node_compare(&pEntry, (void *) k) == 0 )
+                    break;
+
+            } while ( ++lPos != h->lMaxSize );
+            
+            // If the node was not on the right
+            if ( lPos == h->lMaxSize )
+            {
+                // Pointing now to the suitable entry
+                lPos = ulHash;
+
+                // Search backword
+                while ( lPos-- ) 
+                    if ( pEntry = h->data[lPos] )
+                        if ( node_compare(&pEntry, (void *) k) == 0 )
+                            break;
+
+                if ( lPos == -1 ) // Not found
+                    return 0;
+                
+            }
+
+        }
+
+        else if ( h->type == CHAINING )
+        {
+            // pEntry will be set at the end of the function, so it doesn't affect the behavior of the func
+            if ( (lPos = llist_search2((List *) pEntry, (void *) k, sizeof(Node *), &pEntry)) == -1 )
+                return 0; // Not found
+
+            // We store the address of the node in the list, so we have to deref as follows
+            pEntry = *(void **) pEntry;
+
+        }
+
+        // Destroy the old item
+        item_destroy( &((Node *) pEntry)->item );
+
+        // Set the new item
+        ((Node *) pEntry)->item = i;
+
+        return 1;
+    }
+
+    return 0;
+}
+
 void *hash_get(Hash *h, Key *k)
 {
     Item *i;
@@ -276,20 +348,21 @@ void *hash_get(Hash *h, Key *k)
 Item *hash_get2(Hash *h, Key *k)
 {
     void *ent;
-    size_t hash, lPos;
+    size_t lPos;
+    unsigned long ulHash;
 
     // Calculate the hash
-    hash = key_hash(k, h->lMaxSize);
+    ulHash = key_hash(k, h->lMaxSize);
 
     // Find the target entry
-    if ( ent = h->data[hash] )
+    if ( ent = h->data[ulHash] )
     {
         if ( h->type == REPLACEMENT )
             return ((Node *) ent)->item;
 
         else if ( h->type == OPEN_ADDRESSING )
         {
-            lPos = hash;
+            lPos = ulHash;
             
             // Find the node
             do {
@@ -304,7 +377,7 @@ Item *hash_get2(Hash *h, Key *k)
             if ( lPos == h->lMaxSize )
             {
                 // Pointing now to the suitable entry
-                lPos = hash;
+                lPos = ulHash;
 
                 // Search backword
                 while ( lPos-- ) 
@@ -325,11 +398,8 @@ Item *hash_get2(Hash *h, Key *k)
             // Find the node 
             // We must pass the node address size, not the key size because the search func expect a node type, not a key
             // However the comparison function can compare a node with a key 
-            if ( (lPos = llist_search((List *) ent, (void *) k, sizeof(Node *))) == -1 )
+            if ( (lPos = llist_search2((List *) ent, (void *) k, sizeof(Node *), &ent)) == -1 )
                 return NULL; // Not found
-
-            // Get the node from the list            
-            ent = llist_getitemAt((List *) ent, lPos);
 
             // We store the address of the node in the list, so we have to deref as follows
             ent = *(void **) ent;
@@ -341,21 +411,101 @@ Item *hash_get2(Hash *h, Key *k)
     return NULL;
 }
 
+Key *hash_getkey(Hash *h, void *pKeyValue, int nKeySize)
+{
+    void *pEntry;
+    Key *pTempKey;
+    size_t lPos;
+    unsigned long ulHash;
+
+    // Calculate the hash from the key value
+    ulHash = genhash(pKeyValue, nKeySize, h->lMaxSize);
+
+    // Find the target entry
+    if ( pEntry = h->data[ulHash] )
+    {
+        if ( h->type == REPLACEMENT )
+        {
+            if ( key_compare(((Node *) pEntry)->key, pKeyValue, nKeySize) == 0 )
+                return ((Node *) pEntry)->key;
+        }
+
+        else if ( h->type == OPEN_ADDRESSING )
+        {
+            lPos = ulHash;
+            
+            // Find the node
+            do {
+                pEntry = h->data[ lPos ];
+                
+                if ( pEntry && key_compare(((Node *) pEntry)->key, pKeyValue, nKeySize) == 0 )
+                    break;
+
+            } while ( ++lPos != h->lMaxSize );
+            
+            // If the node was not on the right
+            if ( lPos == h->lMaxSize )
+            {
+                // Pointing now to the suitable entry
+                lPos = ulHash;
+
+                // Search backword
+                while ( lPos-- ) 
+                    if ( pEntry = h->data[lPos] )
+                        if ( key_compare(((Node *) pEntry)->key, pKeyValue, nKeySize) == 0 )
+                            break;
+
+                if ( lPos == -1 ) // Not found
+                    return NULL;
+                
+            }
+
+            return ((Node *) pEntry)->key;
+        }
+
+        else if ( h->type == CHAINING )
+        {
+            // Create a temp key from the value for search
+            if ( ! (pTempKey = key_new(pKeyValue, nKeySize, NULL, NULL)) )
+                return NULL;
+
+            if ( llist_search2((List *) pEntry, (void *) pTempKey, sizeof(Node *), &pEntry) == -1 )
+            {
+                // Remove the temp key
+                key_destroy( &pTempKey );
+
+                return NULL; // Not found
+            }
+
+            // Remove the temp key
+            key_destroy( &pTempKey );
+
+            // We store the address of the node in the list, so we have to deref as follows
+            pEntry = *(void **) pEntry;
+
+            return ((Node *) pEntry)->key;
+        }
+    }
+    
+    return NULL;
+}
+
 int hash_delete(Hash *h, Key *k)
 {
     void **temp;
     void *ent;
-    size_t hash, lPos;
+    size_t lPos;
+    unsigned long ulHash;
 
     // Calculate the hash
-    hash = key_hash(k, h->lMaxSize);
+    ulHash = key_hash(k, h->lMaxSize);
 
     // Find the target entry
-    if ( ent = h->data[hash] )
+    if ( ent = h->data[ulHash] )
     {
         if ( h->type == REPLACEMENT )
         {
-            node_destroy( (Node **) h->data + hash );
+            node_destroy( (Node **) h->data + ulHash );
             h->lSize--;
             
             return 1;
@@ -364,10 +514,10 @@ int hash_delete(Hash *h, Key *k)
         else if ( h->type == OPEN_ADDRESSING )
         {
             // Pointing now to the suitable entry
-            temp = h->data + hash;
+            temp = h->data + ulHash;
 
             // Search from the hash index 
-            lPos = hash;
+            lPos = ulHash;
 
             // Find the target node
             do {
@@ -385,7 +535,7 @@ int hash_delete(Hash *h, Key *k)
             if ( lPos == h->lMaxSize )
             {
                 // The position of the target entry
-                lPos = hash;
+                lPos = ulHash;
 
                 // Pointing now to the suitable entry
                 temp = h->data + lPos;
@@ -423,7 +573,7 @@ int hash_delete(Hash *h, Key *k)
             if ( llist_empty((List *) ent) )
             {
                 llist_cleanup( (List **) &ent );
-                h->data[hash] = NULL;
+                h->data[ulHash] = NULL;
             }
 
             h->lSize--;
@@ -556,4 +706,14 @@ void hash_destroy(Hash **h)
     free( (*h)->data );
     free( *h );
     ( *h ) = NULL;
+}
+
+unsigned long genhash(void *data, int nSize, size_t lMaxSize)
+{
+    unsigned long ulHash = 0;
+
+    for (int nIdx = 0; nIdx < nSize; nIdx++)
+        ulHash += *( (unsigned char *) data + nIdx );
+
+    return ulHash % lMaxSize;
 }

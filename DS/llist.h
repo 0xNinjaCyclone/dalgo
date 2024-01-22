@@ -38,6 +38,7 @@ int llist_delete(List *l);
 int llist_deleteAtFirst(List *l);
 int llist_deleteAt(List *l, size_t lIdx);
 long llist_search(List *l, void *item, int nItemSize);
+long llist_search2(List *l, void *item, int nItemSize, void **pReadItem);
 void llist_reverse(List *l);
 void llist_clear(List *l);
 void llist_cleanup(List **l);

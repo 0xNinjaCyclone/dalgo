@@ -42,13 +42,14 @@ typedef struct
     size_t lSize;
     size_t lMaxSize;
     size_t lCollisions;
-    size_t lNextItemIdx; // last accessed item by hash_next function
+    size_t lNextItemIdx; // next item to be accessed by hash_next function
     HType type;
 } Hash;
 
 
 Key *key_new(void *data, int nSize, void (* print)(void *), int (* compare)(void *, void *));
-size_t key_hash(Key *k, size_t lMaxSize);
+int key_compare(Key *k, void *pKeyValue, int nKeySize);
+unsigned long key_hash(Key *k, size_t lMaxSize);
 void key_destroy(Key **k);
 
 Item *item_new(void *data, int nSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *));
@@ -60,11 +61,15 @@ void node_destroy(Node **node);
 
 Hash *hash_new(size_t lMaxSize, HType type);
 int hash_insert(Hash *h, Key *k, Item *i);
+int hash_update(Hash *h, Key *k, Item *i);
 void *hash_get(Hash *h, Key *k);
 Item *hash_get2(Hash *h, Key *k);
+Key *hash_getkey(Hash *h, void *pKeyValue, int nKeySize);
 int hash_delete(Hash *h, Key *k);
 int hash_next(Hash *h, size_t *lPos, Key **k, Item **i); // lIdx needed in CHAINING type, can be set NULL for othrt types
 void hash_print(Hash *h);
 void hash_destroy(Hash **h);
+
+unsigned long genhash(void *data, int nSize, size_t lMaxSize);
 
 #endif
