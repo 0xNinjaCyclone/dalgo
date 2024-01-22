@@ -156,6 +156,12 @@ int hash_insert(Hash *h, Key *k, Item *i)
             h->lSize++;
         } else { // Collision case
             node = (Node *) h->data[hash];
+
+            // Remove the old key and item 
+            key_destroy( &node->key );
+            item_destroy( &node->item );
+
+            // Replace with the new 
             node->key = k;
             node->item = i;
 
@@ -207,9 +213,6 @@ int hash_insert(Hash *h, Key *k, Item *i)
         // Create the node
         if ( !(node = node_new(k, i)) )
             return 0;
-
-        node->key = k;
-        node->item = i;
 
         // insert into the table
         ( *temp ) = (void *) node;
