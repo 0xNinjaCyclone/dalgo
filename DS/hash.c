@@ -505,6 +505,9 @@ int hash_delete(Hash *h, Key *k)
     {
         if ( h->type == REPLACEMENT )
         {
+            if ( node_compare(&ent, (void *) k) != 0 )
+                return 0; // A different key
+
             node_destroy( (Node **) h->data + ulHash );
             h->lSize--;
             
