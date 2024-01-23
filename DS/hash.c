@@ -145,6 +145,8 @@ int hash_insert(Hash *h, Key *k, Item *i)
 {
     void **temp;
     Node *node;
+    Key *pKey;
+    Item *pItem;
     size_t lCtr;
     unsigned long ulHash;
 
@@ -187,22 +189,27 @@ int hash_insert(Hash *h, Key *k, Item *i)
         if ( h->lSize == h->lMaxSize )
             return 0;
 
-        // Pointing now to the suitable entry
-        temp = h->data + ulHash;
+        // The index of the next entry to be read
+        lCtr = 0;
 
-        // Check whether this entry is available or not
-        if ( *temp )
-        {
-            // Check if the given key was used before
-            if ( node_compare(temp, k) == 0 )
+        // Iterate over all entries to ensuring that the key doesn't exist
+        while ( hash_next(h, &lCtr, &pKey, &pItem) )
+            if ( node_compare(h->data + lCtr - 1, k) == 0 )
                 return 0;
 
+        // Pointing now to the appropriate entry
+        temp = h->data + ulHash;
+
+        // Check whether the appropriate entry is available or not
+        if ( *temp )
+        {
             // This is a f*cking collision case
             h->lCollisions++;
 
+            // Number of entries to the right of the appropriate entry
             lCtr = h->lMaxSize - 1 - ulHash;
 
-            // Find an unused entry next to the entry
+            // Find an unused entry next to the appropriate entry
             while ( lCtr-- && *(++temp) );
             
             // WHAT THE FUCK IF ALL ENTRIES ON THE RIGHT WERE UNAVAILABLE ???
@@ -211,7 +218,7 @@ int hash_insert(Hash *h, Key *k, Item *i)
                 // Pointing now to the suitable entry
                 temp = h->data + ulHash;
 
-                // The index of the entry
+                // The index of the appropriate entry ( Number of entries to the left of it )
                 lCtr = ulHash;
 
                 // Search backward until find an available entry
