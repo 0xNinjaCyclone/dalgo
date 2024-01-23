@@ -162,6 +162,10 @@ int hash_insert(Hash *h, Key *k, Item *i)
         } else { // Collision case
             node = (Node *) h->data[ulHash];
 
+            // Check if the key exist
+            if ( node_compare(&node, k) == 0 )
+                return 0; // To avoid manipulating an exist key
+
             // Remove the old key and item 
             key_destroy( &node->key );
             item_destroy( &node->item );
@@ -210,7 +214,7 @@ int hash_insert(Hash *h, Key *k, Item *i)
                 // The index of the entry
                 lCtr = ulHash;
 
-                // Search backword until find an available entry
+                // Search backward until find an available entry
                 while ( lCtr-- && *(--temp) );
             }
         }
@@ -298,7 +302,7 @@ int hash_update(Hash *h, Key *k, Item *i)
                 // Pointing now to the suitable entry
                 lPos = ulHash;
 
-                // Search backword
+                // Search backward
                 while ( lPos-- ) 
                     if ( pEntry = h->data[lPos] )
                         if ( node_compare(&pEntry, (void *) k) == 0 )
@@ -379,7 +383,7 @@ Item *hash_get2(Hash *h, Key *k)
                 // Pointing now to the suitable entry
                 lPos = ulHash;
 
-                // Search backword
+                // Search backward
                 while ( lPos-- ) 
                     if ( ent = h->data[lPos] )
                         if ( node_compare(&ent, (void *) k) == 0 )
@@ -449,7 +453,7 @@ Key *hash_getkey(Hash *h, void *pKeyValue, int nKeySize)
                 // Pointing now to the suitable entry
                 lPos = ulHash;
 
-                // Search backword
+                // Search backward
                 while ( lPos-- ) 
                     if ( pEntry = h->data[lPos] )
                         if ( key_compare(((Node *) pEntry)->key, pKeyValue, nKeySize) == 0 )
@@ -545,7 +549,7 @@ int hash_delete(Hash *h, Key *k)
                 // Pointing now to the suitable entry
                 temp = h->data + lPos;
 
-                // Search backword
+                // Search backward
                 while ( lPos-- ) 
                     if ( ent = *( --temp ) )
                         if ( node_compare(&ent, (void *) k) == 0 )

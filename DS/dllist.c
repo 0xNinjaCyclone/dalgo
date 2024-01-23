@@ -103,7 +103,7 @@ int dllist_insertAt(DoublyLinkedList *l, size_t lIdx, void *item, int nItemSize,
             );
 
         else 
-            /* Search backword */
+            /* Search backward */
             for (
                 lIdx -= dllist_size(l),
                 curr = l->last;
@@ -145,7 +145,7 @@ int dllist_updateAt(DoublyLinkedList *l, size_t lIdx, void *item)
             );
 
         else 
-            /* Search backword */
+            /* Search backward */
             for (
                 lIdx -= dllist_size(l),
                 node = l->last;
@@ -183,7 +183,7 @@ void *dllist_getitemAt(DoublyLinkedList *l, size_t lIdx)
             );
 
         else 
-            /* Search backword */
+            /* Search backward */
             for (
                 lIdx -= dllist_size(l),
                 node = l->last;
@@ -272,7 +272,7 @@ int dllist_deleteAt(DoublyLinkedList *l, size_t lIdx)
             );
 
         else 
-            /* Search backword */
+            /* Search backward */
             for (
                 lIdx -= dllist_size(l),
                 prev = l->last;
