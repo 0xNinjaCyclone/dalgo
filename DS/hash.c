@@ -145,8 +145,6 @@ int hash_insert(Hash *h, Key *k, Item *i)
 {
     void **temp;
     Node *node;
-    Key *pKey;
-    Item *pItem;
     size_t lCtr;
     unsigned long ulHash;
 
@@ -193,7 +191,7 @@ int hash_insert(Hash *h, Key *k, Item *i)
         lCtr = 0;
 
         // Iterate over all entries to ensuring that the key doesn't exist
-        while ( hash_next(h, &lCtr, &pKey, &pItem) )
+        while ( hash_next(h, &lCtr, NULL, NULL) )
             if ( node_compare(h->data + lCtr - 1, k) == 0 )
                 return 0;
 
@@ -620,7 +618,7 @@ int hash_next(Hash *h, size_t *lPos, Key **k, Item **i)
 
     // Check whether the given position is in the expected range or not
     if ( *lPos < 0 || *lPos >= h->lMaxSize )
-        return 0;
+        goto FAIL;
 
     // Find the next available entry
     if ( ! (entry = h->data[ *lPos ]) )
@@ -636,8 +634,11 @@ int hash_next(Hash *h, size_t *lPos, Key **k, Item **i)
 
     if ( h->type == REPLACEMENT || h->type == OPEN_ADDRESSING )
     {
-        *k = ( (Node *) entry )->key;
-        *i = ( (Node *) entry )->item;
+        if ( k )
+            *k = ( (Node *) entry )->key;
+
+        if ( i )
+            *i = ( (Node *) entry )->item;
 
         // Next position 
         ( *lPos )++;
@@ -651,14 +652,16 @@ int hash_next(Hash *h, size_t *lPos, Key **k, Item **i)
         // Get current node
         if ( node = *(Node **) llist_getitemAt((List *) entry, h->lNextItemIdx) )
         {
+            if ( k )
+                *k = node->key;
 
-            *k = node->key;
-            *i = node->item;
+            if ( i )
+                *i = node->item;
 
             // Set next item index    
             h->lNextItemIdx++;
 
-            // If the next item reachs the end of the list, we have to resotre it to zero and jump on the next entry
+            // If the next item reaches the end of the list, we have to reset it to zero, then jump on the next entry
             if ( h->lNextItemIdx == llist_size((List *) entry) )
             {
                 h->lNextItemIdx = 0;
@@ -672,8 +675,11 @@ int hash_next(Hash *h, size_t *lPos, Key **k, Item **i)
 
 FAIL:
     // Failed to get the node data
-    *k = NULL;
-    *i = NULL;
+    if ( k )
+        *k = NULL;
+
+    if ( i )
+        *i = NULL;
 
     return 0;
 }
