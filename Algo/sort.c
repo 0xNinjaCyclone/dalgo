@@ -7,6 +7,7 @@
 
 #include "sort.h"
 #include "move.h"
+#include "heap.h"
 
 void selection_sort(void *data, size_t lSize, int nItemSize, int (* compare)(void *, void *))
 {
@@ -260,4 +261,28 @@ void merge_sort2(void *data, int nItemSize, size_t lStart, size_t lEnd, int (* c
     merge_sort2(data, nItemSize, lMiddle + 1, lEnd, compare);
     merge(data, nItemSize, lStart, lMiddle, lEnd, compare);
 
+}
+
+void heap_sort(void *data, size_t ulSize, int nItemSize, int (* compare)(void *, void *))
+{
+    Heap *htree;
+    HNode *root;
+
+    if ( ! (htree = heap_init(ulSize, nItemSize, MAXHEAP, malloc, free, NULL, compare)) )
+        goto LEAVE;
+
+    if ( ! heap_build(htree, data, ulSize) )
+        goto LEAVE;
+
+    
+    while ( ulSize-- )
+    {
+        root = heap_root( htree );
+        memcpy( (void *) data + ulSize * nItemSize, root->data, nItemSize );
+        heap_delete( htree, root->data );
+    }
+
+LEAVE:
+    if ( htree ) 
+        heap_cleanup( &htree );
 }
