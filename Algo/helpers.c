@@ -227,3 +227,40 @@ void PrintArray(void *data, size_t lSize, int nItemSize, void (* print)(void *))
     }
     puts(" ]");
 }
+
+void PrintByteBits(unsigned char b)
+{
+    for ( __uint8_t unBits = 8; unBits--; )
+            printf( "%c", (b & (1 << unBits)) ? '1' : '0' );
+}
+
+void PrintBits(unsigned char *pBytes, size_t ulSize, bool bLittleEndian)
+{
+    if ( bLittleEndian )
+        pBytes += ulSize - 1;
+
+    while ( ulSize-- )
+    {
+        PrintByteBits( *pBytes );
+
+        if ( ulSize % 8 == 0 )
+            printf("\n");
+        else
+            printf(" ");
+
+        if ( bLittleEndian )
+            pBytes--;
+        else
+            pBytes++;
+    }
+
+}
+
+void PrintArrayBits(unsigned char *pBytes, size_t ulArrSize, int nItemSize, bool bLittleEndian)
+{
+    while ( ulArrSize-- )
+    {
+        PrintBits( pBytes, nItemSize, bLittleEndian );
+        pBytes += nItemSize;
+    }
+}

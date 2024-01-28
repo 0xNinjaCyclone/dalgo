@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
+#include <stdbool.h>
 
 void *GenericStrNew(void *pStr, int nSize);
 void *CharNewA(char *c);
@@ -43,5 +44,8 @@ wchar_t *WideStrFromAnsi(char *cpStr, size_t lSize);
 unsigned int calc_GCD(unsigned int a, unsigned int b);
 
 void PrintArray(void *data, size_t lSize, int nItemSize, void (* print)(void *));
+void PrintByteBits(unsigned char b);
+void PrintBits(unsigned char *pBytes, size_t ulSize, bool bLittleEndian);
+void PrintArrayBits(unsigned char *pBytes, size_t ulArrSize, int nItemSize, bool bLittleEndian);
 
 #endif
