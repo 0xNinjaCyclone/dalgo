@@ -73,7 +73,6 @@ size_t heap_rightidx(Heap *h, size_t ulIdx)
 int heap_insert(Heap *h, void *item)
 {
     HNode *node;
-    size_t ulChildIdx;
     size_t ulParentIdx;
 
     if ( heap_full(h) )
@@ -82,8 +81,7 @@ int heap_insert(Heap *h, void *item)
     if ( node = build_node(h, item) )
     {
         
-        h->nodes[ h->ulSize ] = node;
-        h->ulSize++;
+        h->nodes[ h->ulSize++ ] = node;
 
         if ( (ulParentIdx = heap_parentidx(h, h->ulSize - 1)) != -1 )
             do {
@@ -128,8 +126,6 @@ int heap_delete(Heap *h, void *item)
 
 size_t heap_find(Heap *h, void *item)
 {
-    HNode *root;
-
     if ( ! heap_empty(h) )
         return heap_find2( h, item, HROOT );
 
