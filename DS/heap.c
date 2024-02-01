@@ -78,7 +78,7 @@ int heap_insert(Heap *h, void *item)
     if ( heap_full(h) )
         return 0;
 
-    if ( node = build_node(h, item) )
+    if ( node = heap_build_node(h, item) )
     {
         
         h->nodes[ h->ulSize++ ] = node;
@@ -107,7 +107,7 @@ int heap_delete(Heap *h, void *item)
     if ( (ulIdx = heap_find(h, item)) == -1 )
         return 0;
 
-    destroy_node( h, h->nodes[ulIdx] );
+    heap_destroy_node( h, h->nodes[ulIdx] );
     h->ulSize--;
     
     // Replace the target node with the last node
@@ -249,7 +249,7 @@ int heap_build(Heap *h, void *data, size_t ulSize)
     // Insert all items into the heap
     for ( ulIdx = 0; ulSize--; ulIdx++ )
     {
-        if ( ! (node = build_node(h, (void *)((__SIZE_TYPE__) data + ulIdx * h->nItemSize))) )
+        if ( ! (node = heap_build_node(h, (void *)((__SIZE_TYPE__) data + ulIdx * h->nItemSize))) )
             return 0;
 
         h->nodes[ h->ulSize++ ] = node;
@@ -270,13 +270,13 @@ int heap_build(Heap *h, void *data, size_t ulSize)
 
 void heap_cleanup(Heap **h)
 {
-    destroy_nodes( *h );
+    heap_destroy_nodes( *h );
     free( (*h)->nodes );
     free( *h );
     ( *h ) = NULL;
 }
 
-HNode *build_node(Heap *h, void *item)
+HNode *heap_build_node(Heap *h, void *item)
 {
     HNode *node;
 
@@ -297,19 +297,19 @@ HNode *build_node(Heap *h, void *item)
     return NULL;
 }
 
-void destroy_nodes(Heap *h)
+void heap_destroy_nodes(Heap *h)
 {
     HNode **temp = h->nodes;
 
     while ( h->ulSize-- )
     {
-        destroy_node(h, *temp);
+        heap_destroy_node(h, *temp);
         *temp = NULL;
         temp++;
     }
 }
 
-void destroy_node(Heap *h, HNode *node)
+void heap_destroy_node(Heap *h, HNode *node)
 {
     h->deallocate( node->data );
     free( node );

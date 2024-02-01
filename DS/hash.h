@@ -62,6 +62,7 @@ void node_destroy(Node **node);
 Hash *hash_new(size_t lMaxSize, HType type);
 int hash_insert(Hash *h, Key *k, Item *i);
 int hash_update(Hash *h, Key *k, Item *i);
+size_t hash_size(Hash *h);
 void *hash_get(Hash *h, Key *k);
 Item *hash_get2(Hash *h, Key *k);
 Key *hash_getkey(Hash *h, void *pKeyValue, int nKeySize);

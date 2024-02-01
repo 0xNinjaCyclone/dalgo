@@ -43,8 +43,8 @@ void heap_heapify(Heap *h, size_t ulIdx);
 void heap_swap(Heap *h, size_t ulNode1Idx, size_t ulNode2Idx);
 void heap_cleanup(Heap **h);
 
-HNode *build_node(Heap *h, void *item);
-void destroy_nodes(Heap *h);
-void destroy_node(Heap *h, HNode *node);
+HNode *heap_build_node(Heap *h, void *item);
+void heap_destroy_nodes(Heap *h);
+void heap_destroy_node(Heap *h, HNode *node);
 
 #endif

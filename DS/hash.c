@@ -343,6 +343,11 @@ int hash_update(Hash *h, Key *k, Item *i)
     return 0;
 }
 
+size_t hash_size(Hash *h)
+{
+    return h->lSize;
+}
+
 void *hash_get(Hash *h, Key *k)
 {
     Item *i;
