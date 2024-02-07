@@ -1,3 +1,9 @@
+/*
+    Huffman Implementation
+    
+    Author      => Abdallah Mohamed Elsharif
+    Date        => 29-1-2024
+*/
 
 #include "huffman.h"
 
@@ -109,7 +115,6 @@ HuffmanTreeNode *huffman_build(HuffmanTreeNode *hNodes, size_t ulSize)
         hNode.left = hpLeftTreeNode;
         hNode.right = hpRightTreeNode;
         hNode.data = 0x00;
-        hpTreeNode = huffman_newnode( &hNode );
         heap_insert(htree, &hNode);
     }
 
