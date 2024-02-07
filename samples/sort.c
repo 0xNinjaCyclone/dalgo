@@ -3,7 +3,7 @@
     
     Author      => Abdallah Mohamed Elsharif
     Date        => 20-12-2021
-    Compile     => gcc -I../Algo/ ../Algo/helpers.c ../Algo/move.c ../Algo/sort.c sort.c -o sort
+    Compile     => gcc -I../Algo/ -I../DS/ ../DS/heap.c ../Algo/helpers.c ../Algo/move.c ../Algo/sort.c sort.c -o sort
 */
 
 #include "sort.h"
