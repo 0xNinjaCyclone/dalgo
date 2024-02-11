@@ -60,6 +60,7 @@ int node_compare(void *node, void *key); // Callback for the list
 void node_destroy(Node **node);
 
 Hash *hash_new(size_t lMaxSize, HType type);
+int hash_empty(Hash *h);
 int hash_insert(Hash *h, Key *k, Item *i);
 int hash_update(Hash *h, Key *k, Item *i);
 size_t hash_size(Hash *h);
@@ -67,7 +68,7 @@ void *hash_get(Hash *h, Key *k);
 Item *hash_get2(Hash *h, Key *k);
 Key *hash_getkey(Hash *h, void *pKeyValue, int nKeySize);
 int hash_delete(Hash *h, Key *k);
-int hash_next(Hash *h, size_t *lPos, Key **k, Item **i); // lIdx needed in CHAINING type, can be set NULL for othrt types
+int hash_next(Hash *h, size_t *ulpPos, Key **k, Item **i);
 void hash_print(Hash *h);
 void hash_destroy(Hash **h);
 

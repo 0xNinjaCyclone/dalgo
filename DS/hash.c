@@ -126,19 +126,18 @@ Hash *hash_new(size_t lMaxSize, HType type)
         h->lSize = h->lCollisions = h->lNextItemIdx = 0;
         h->type = type;
 
-        if ( h->data = malloc(sizeof(void *) * (h->lMaxSize + 1)) )
-        {
-            do {
-                h->data[ lMaxSize ] = NULL;
-            } while( lMaxSize-- );
-
+        if ( h->data = calloc(h->lMaxSize, sizeof(void *)) )
             return h;
-        }
 
         free( h );
     }
 
     return NULL;
+}
+
+int hash_empty(Hash *h)
+{
+    return ( hash_size(h) == 0 );
 }
 
 int hash_insert(Hash *h, Key *k, Item *i)
@@ -400,7 +399,7 @@ Item *hash_get2(Hash *h, Key *k)
                             break;
 
                 if ( lPos == -1 ) // Not found
-                    return 0;
+                    return NULL;
                 
             }
 
@@ -616,24 +615,24 @@ int hash_delete(Hash *h, Key *k)
     return 0;
 }
 
-int hash_next(Hash *h, size_t *lPos, Key **k, Item **i)
+int hash_next(Hash *h, size_t *ulpPos, Key **k, Item **i)
 {
     void *entry;
     Node *node;
 
     // Check whether the given position is in the expected range or not
-    if ( *lPos < 0 || *lPos >= h->lMaxSize )
+    if ( hash_empty(h) || *ulpPos >= h->lMaxSize )
         goto FAIL;
 
     // Find the next available entry
-    if ( ! (entry = h->data[ *lPos ]) )
+    if ( ! (entry = h->data[ *ulpPos ]) )
     {
         do {
             // Check if we reach the end of the table
-            if ( *lPos == h->lMaxSize )
+            if ( *ulpPos == h->lMaxSize )
                 goto FAIL;
 
-            entry = h->data[ ++(*lPos) ];
+            entry = h->data[ ++(*ulpPos) ];
         } while ( ! entry );
     }
 
@@ -646,7 +645,7 @@ int hash_next(Hash *h, size_t *lPos, Key **k, Item **i)
             *i = ( (Node *) entry )->item;
 
         // Next position 
-        ( *lPos )++;
+        ( *ulpPos )++;
         
         return 1;
     }
@@ -670,7 +669,7 @@ int hash_next(Hash *h, size_t *lPos, Key **k, Item **i)
             if ( h->lNextItemIdx == llist_size((List *) entry) )
             {
                 h->lNextItemIdx = 0;
-                ( *lPos )++;
+                ( *ulpPos )++;
             }
 
             return 1;
@@ -716,29 +715,32 @@ void hash_destroy(Hash **h)
     Key *pKey = NULL;
     size_t lPos = 0;
 
-    // Destroy all keys and items
-    while ( hash_next(*h, &lPos, &pKey, &pItem) )
+    if ( ! hash_empty(*h) )
     {
-        key_destroy( &pKey );
-        item_destroy( &pItem );
-    }
-
-    temp = (*h)->data;
-
-    // Deallocate all entries
-    while ( (*h)->lMaxSize-- )
-    {
-        if ( *temp )
+        // Destroy all keys and items
+        while ( hash_next(*h, &lPos, &pKey, &pItem) )
         {
-            if ( (*h)->type == CHAINING )
-                llist_cleanup( (List **) temp );
-
-            else
-                node_destroy( (Node **) temp );
+            key_destroy( &pKey );
+            item_destroy( &pItem );
         }
 
-        // Next entry
-        temp++;
+        temp = (*h)->data;
+
+        // Deallocate all entries
+        while ( (*h)->lMaxSize-- )
+        {
+            if ( *temp )
+            {
+                if ( (*h)->type == CHAINING )
+                    llist_cleanup( (List **) temp );
+
+                else
+                    node_destroy( (Node **) temp );
+            }
+
+            // Next entry
+            temp++;
+        }
     }
 
     free( (*h)->data );
