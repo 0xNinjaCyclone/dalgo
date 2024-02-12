@@ -629,10 +629,10 @@ int hash_next(Hash *h, size_t *ulpPos, Key **k, Item **i)
     {
         do {
             // Check if we reach the end of the table
-            if ( *ulpPos == h->lMaxSize )
+            if ( ++(*ulpPos) == h->lMaxSize )
                 goto FAIL;
 
-            entry = h->data[ ++(*ulpPos) ];
+            entry = h->data[ *ulpPos ];
         } while ( ! entry );
     }
 
