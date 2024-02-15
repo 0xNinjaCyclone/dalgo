@@ -24,7 +24,7 @@ void print_codes2(HuffmanTreeNode *pRoot, __uint8_t unBits[], size_t ulIdx)
 
     if ( !pRoot->left && !pRoot->right )
     {
-        printf( "   %c\t   %d\t\t", pRoot->data, pRoot->ulFrequency );
+        printf( "   %c\t   %d\t\t", pRoot->item.data, pRoot->item.unFrequency );
 
         for ( size_t i = 0; i < ulIdx; i++ )
             printf("%d", unBits[i]);
@@ -46,11 +46,11 @@ int main()
 {
     HuffmanTreeNode *pHuffmanNodes, *pHuffmanRoot;
     unsigned char data[] = "BCCADBBDABBCCADDCCEE";
-    size_t ulSize = 0;
+    __uint16_t unSize = 0;
 
-    pHuffmanNodes = huffman_calcfreq(data, sizeof(data) - 1, &ulSize);
+    pHuffmanNodes = huffman_calcfreq(data, sizeof(data) - 1, &unSize);
 
-    if ( !(pHuffmanRoot = huffman_build(pHuffmanNodes, ulSize)) )
+    if ( !(pHuffmanRoot = huffman_build(pHuffmanNodes, unSize)) )
         return 1;
 
     print_codes( pHuffmanRoot );
