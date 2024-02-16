@@ -36,7 +36,8 @@ struct _HuffmanTreeNode
 {
     HuffmanTreeNode *left;
     HuffmanTreeNode *right;
-    HuffmanItem item;
+    unsigned char data;
+    unsigned long ulFrequency; // freq within the tree must be larger than "HuffmanItem" for unused items.
 };
 
 HuffmanTreeNode *huffman_calcfreq(unsigned char *data, size_t ulSize, __uint16_t *unpNumberOfNodes);

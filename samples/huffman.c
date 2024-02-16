@@ -24,7 +24,7 @@ void print_codes2(HuffmanTreeNode *pRoot, __uint8_t unBits[], size_t ulIdx)
 
     if ( !pRoot->left && !pRoot->right )
     {
-        printf( "   %c\t   %d\t\t", pRoot->item.data, pRoot->item.unFrequency );
+        printf( "   %c\t   %d\t\t", pRoot->data, pRoot->ulFrequency );
 
         for ( size_t i = 0; i < ulIdx; i++ )
             printf("%d", unBits[i]);

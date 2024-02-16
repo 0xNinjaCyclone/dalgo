@@ -15,6 +15,9 @@ HuffmanTreeNode *huffman_calcfreq(unsigned char *data, size_t ulSize, __uint16_t
     Item *pItem;
     size_t ulCtr, ulIdx;
 
+    if ( ulSize == 0 )
+        return NULL;
+
     if ( !(htable = hash_new(256, REPLACEMENT)) )
         return NULL;
 
@@ -59,8 +62,8 @@ HuffmanTreeNode *huffman_calcfreq(unsigned char *data, size_t ulSize, __uint16_t
 
     while ( hash_next(htable, &ulCtr, &pKey, &pItem) )
     {
-        ( pNodes + ulIdx )->item.data = *(unsigned char *) pKey->data;
-        ( pNodes + ulIdx )->item.unFrequency = *(__uint32_t *) hash_get( htable, pKey );
+        ( pNodes + ulIdx )->data = *(unsigned char *) pKey->data;
+        ( pNodes + ulIdx )->ulFrequency = *(__uint32_t *) hash_get( htable, pKey );
         ( pNodes + ulIdx )->left = NULL;
         ( pNodes + ulIdx )->right = NULL;
         ulIdx++;
@@ -83,8 +86,8 @@ HuffmanTreeNode *huffman_parsefreq(unsigned char *data, __uint16_t *unpNumberOfN
 
     for ( __uint16_t unIdx = 0; unIdx < *unpNumberOfNodes; unIdx++ )
     {
-        pNodes[ unIdx ].item.data = ((HuffmanItem *) data)->data;
-        pNodes[ unIdx ].item.unFrequency = ((HuffmanItem *) data)->unFrequency;
+        pNodes[ unIdx ].data = ((HuffmanItem *) data)->data;
+        pNodes[ unIdx ].ulFrequency = ((HuffmanItem *) data)->unFrequency;
         pNodes[ unIdx ].left = NULL;
         pNodes[ unIdx ].right = NULL;
 
@@ -97,9 +100,9 @@ HuffmanTreeNode *huffman_parsefreq(unsigned char *data, __uint16_t *unpNumberOfN
 
 int huffman_cmpnode(void *x, void *y)
 {
-    return UIntCmp(
-        &( (HuffmanTreeNode *) x )->item.unFrequency,
-        &( (HuffmanTreeNode *) y )->item.unFrequency
+    return ULongCmp(
+        &( (HuffmanTreeNode *) x )->ulFrequency,
+        &( (HuffmanTreeNode *) y )->ulFrequency
     );
 }
 
@@ -109,7 +112,8 @@ HuffmanTreeNode *huffman_newnode(HuffmanTreeNode *node)
 
     if ( hpNode = malloc(sizeof(HuffmanTreeNode)) )
     {
-        hpNode->item = node->item;
+        hpNode->data = node->data;
+        hpNode->ulFrequency = node->ulFrequency;
         hpNode->left = node->left;
         hpNode->right = node->right;
         return hpNode;    
@@ -141,10 +145,10 @@ HuffmanTreeNode *huffman_build(HuffmanTreeNode *hNodes, __uint16_t unSize)
         hRightNode = *(HuffmanTreeNode *) heap_root(htree)->data;
         hpRightTreeNode = huffman_newnode( &hRightNode );
         heap_delete(htree, &hRightNode);
-        hNode.item.unFrequency = hLeftNode.item.unFrequency + hRightNode.item.unFrequency;
+        hNode.ulFrequency = hLeftNode.ulFrequency + hRightNode.ulFrequency;
         hNode.left = hpLeftTreeNode;
         hNode.right = hpRightTreeNode;
-        hNode.item.data = 0x00;
+        hNode.data = 0x00;
         heap_insert(htree, &hNode);
     }
 
@@ -160,11 +164,11 @@ void huffman_traverse2(HuffmanTreeNode *pRoot, Hash *pHuffmanTable, HuffmanCode 
 {
     if ( !pRoot->left && !pRoot->right )
     {
-        c.unFrequency = pRoot->item.unFrequency;
+        c.unFrequency = pRoot->ulFrequency;
 
         hash_insert(
             pHuffmanTable, 
-            key_new( &pRoot->item.data, 1, NULL, ByteCmp ), 
+            key_new( &pRoot->data, 1, NULL, ByteCmp ), 
             item_new( &c, sizeof(HuffmanCode), malloc, free, NULL, NULL )
         );
     }
@@ -192,7 +196,7 @@ Hash *huffman_traverse(HuffmanTreeNode *pRoot, __uint16_t unNumberOfNodes)
     Hash *pHuffmanTable;
     HuffmanCode c = { 0 };
 
-    if ( pHuffmanTable = hash_new(unNumberOfNodes, OPEN_ADDRESSING) )
+    if ( pHuffmanTable = hash_new(256, REPLACEMENT) )
     {
         huffman_traverse2(pRoot, pHuffmanTable, c);
         return pHuffmanTable;
@@ -393,8 +397,8 @@ unsigned char *huffman_decode(unsigned char *data, size_t ulSize, bool bForceDec
     {
         // Check if we deal with invalid table
         if ( ! (
-            huffman_decodebyte(pHuffmanRoot, pTempResult++, &pTempBitsTable) &&
-            pTempBitsTable <= pBitsTable + ulBitsLen
+            pTempBitsTable < pBitsTable + ulBitsLen &&
+            huffman_decodebyte(pHuffmanRoot, pTempResult++, &pTempBitsTable) 
         ) )
         {
             free( pResult );
@@ -423,7 +427,7 @@ bool huffman_decodebyte(HuffmanTreeNode *pHuffmanRoot, unsigned char *pResult, _
 {
     if ( ! pHuffmanRoot->right && ! pHuffmanRoot->left )
     {
-        *pResult = pHuffmanRoot->item.data;
+        *pResult = pHuffmanRoot->data;
         return true;
     }
     
