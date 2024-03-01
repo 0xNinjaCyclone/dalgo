@@ -239,6 +239,7 @@ size_t huffman_calcenclen(Hash *pHuffmanTable)
     return ulSize;
 }
 
+// This function calculates the original data length from the table
 size_t huffman_calcdeclen(Hash *pHuffmanTable)
 {
     HuffmanCode *pCode;
@@ -248,7 +249,10 @@ size_t huffman_calcdeclen(Hash *pHuffmanTable)
     ulSize = ulPos = 0;
 
     while ( hash_next(pHuffmanTable, &ulPos, NULL, &pItem) )
-        ulSize += ( (HuffmanCode *) pItem->data )->unFrequency;
+    {
+        pCode = (HuffmanCode *) pItem->data;
+        ulSize += pCode->unFrequency;
+    }
 
     return ulSize;
 }
@@ -264,7 +268,7 @@ unsigned char *huffman_encode(unsigned char *data, size_t ulSize, bool bForceEnc
     Item *pItem;
     HuffmanCode *pCode;
     __uint16_t unActive;
-    __uint8_t unBitsCtr = 8;
+    __uint8_t unBitPos = 8;
     size_t ulBitsLen, ulPos = 0;
 
     if ( !(pHuffmanNodes = huffman_calcfreq(data, ulSize, &unActive)) )
@@ -303,15 +307,17 @@ unsigned char *huffman_encode(unsigned char *data, size_t ulSize, bool bForceEnc
         // Iterate over huffman codes of current byte
         while ( ulBitsLen-- )
         {
-            // Jump on the next byte within encoding buffer if the last bit in current byte had been set
-            if ( unBitsCtr-- == 0 )
-            {
-                unBitsCtr = 8 - 1;
-                pTempResult++;
-            }
+            unBitPos--;
 
             if ( (pCode->unCode >> ulBitsLen) & 1 ) 
-                *pTempResult |= ( 1 << unBitsCtr );
+                *pTempResult |= ( 1 << unBitPos );
+
+            // Jump on the next byte within encoding buffer if the last bit in current byte had been set
+            if ( unBitPos == 0 )
+            {
+                unBitPos = 8;
+                pTempResult++;
+            }
 
         }
         
@@ -376,14 +382,14 @@ unsigned char *huffman_decode(unsigned char *data, size_t ulSize, bool bForceDec
     data += ulHeaderSize;
 
     // Read bits from the table
-    for ( size_t i = ulBitsLen; i--; )
+    for ( size_t ulBitPos = ulBitsLen; ulBitPos--; )
     {
         // Check if the current bit is set
-        if ( *data & (1 << i % 8) )
+        if ( *data & (1 << ulBitPos % 8) )
             (*pTempBitsTable)++;
 
         // The end of current byte ( jump on the next one ) 
-        if ( i % 8 == 0 )
+        if ( ulBitPos % 8 == 0 )
             data++;
 
         pTempBitsTable++;
@@ -398,7 +404,7 @@ unsigned char *huffman_decode(unsigned char *data, size_t ulSize, bool bForceDec
         // Check if we deal with invalid table
         if ( ! (
             pTempBitsTable < pBitsTable + ulBitsLen &&
-            huffman_decodebyte(pHuffmanRoot, pTempResult++, &pTempBitsTable) 
+            huffman_lookup(pHuffmanRoot, pTempResult++, &pTempBitsTable) 
         ) )
         {
             free( pResult );
@@ -423,27 +429,27 @@ LEAVE:
     return pResult;
 }
 
-bool huffman_decodebyte(HuffmanTreeNode *pHuffmanRoot, unsigned char *pResult, __uint8_t **pBitsTable)
+bool huffman_lookup(HuffmanTreeNode *pRoot, unsigned char *pResult, __uint8_t **pBitsTable)
 {
-    if ( ! pHuffmanRoot->right && ! pHuffmanRoot->left )
+    if ( ! pRoot->right && ! pRoot->left )
     {
-        *pResult = pHuffmanRoot->data;
+        *pResult = pRoot->data;
         return true;
     }
     
     if ( *(*pBitsTable)++ )
     {
-        if ( ! pHuffmanRoot->right )
+        if ( ! pRoot->right )
             return false;
 
-        huffman_decodebyte( pHuffmanRoot->right, pResult, pBitsTable );
+        huffman_lookup( pRoot->right, pResult, pBitsTable );
     }
 
     else {
-        if ( ! pHuffmanRoot->left )
+        if ( ! pRoot->left )
             return false;
 
-        huffman_decodebyte( pHuffmanRoot->left, pResult, pBitsTable );
+        huffman_lookup( pRoot->left, pResult, pBitsTable );
     }
     
 }

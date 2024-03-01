@@ -49,7 +49,7 @@ size_t huffman_calcenclen(Hash *pHuffmanTable);
 size_t huffman_calcdeclen(Hash *pHuffmanTable);
 unsigned char *huffman_encode(unsigned char *data, size_t ulSize, bool bForceEncoding, size_t *ulpResultSize);
 unsigned char *huffman_decode(unsigned char *data, size_t ulSize, bool bForceDecoding, size_t *ulpResultSize);
-bool huffman_decodebyte(HuffmanTreeNode *pHuffmanRoot, unsigned char *pResult, __uint8_t **pBitsTable);
+bool huffman_lookup(HuffmanTreeNode *pRoot, unsigned char *pResult, __uint8_t **pBitsTable);
 void huffman_cleanup(HuffmanTreeNode **root);
 
 #endif
