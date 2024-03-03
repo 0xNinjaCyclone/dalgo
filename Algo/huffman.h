@@ -9,10 +9,10 @@
 #include "helpers.h"
 
 #ifdef _MSC_VER
-#define PACKED_STRUCT(name) __pragma(pack(push, 1)) struct name __pragma(pack(pop))
+#define PACKED_STRUCT( __Block__ ) __pragma( pack(push, 1) ) typedef struct __Block__ __pragma( pack(pop))
 
 #elif defined(__GNUC__)
-#define PACKED_STRUCT(name) struct __attribute__((packed)) name
+#define PACKED_STRUCT( __Block__ ) typedef struct __attribute__((packed)) __Block__
 
 #endif
 
@@ -26,11 +26,12 @@ typedef struct _HuffmanCode
     __uint32_t unFrequency;
 } HuffmanCode;
 
-typedef PACKED_STRUCT( _HuffmanItem )
+ PACKED_STRUCT(
 {
     unsigned char data;
     __uint32_t unFrequency; 
 } HuffmanItem;
+)
 
 struct _HuffmanTreeNode
 {
