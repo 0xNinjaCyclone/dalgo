@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "llist.h"
 
 typedef struct
@@ -67,6 +68,10 @@ size_t hash_size(Hash *h);
 void *hash_get(Hash *h, Key *k);
 Item *hash_get2(Hash *h, Key *k);
 Key *hash_getkey(Hash *h, void *pKeyValue, int nKeySize);
+Key *hash_getkeybyitem(Hash *h, Item *i);
+Key *hash_getkeybyitem2(Hash *h, void *pItemValue, int nItemSize);
+List *hash_getkeylistbyitem(Hash *h, Item *i);
+List *hash_getkeylistbyitem2(Hash *h, void *pItemValue, int nItemSize);
 int hash_delete(Hash *h, Key *k);
 int hash_next(Hash *h, size_t *ulpPos, Key **k, Item **i);
 void hash_print(Hash *h);

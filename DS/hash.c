@@ -38,6 +38,15 @@ int key_compare(Key *k, void *pKeyValue, int nKeySize)
     return k->compare(k->data, pKeyValue);
 }
 
+void key_print(void *k)
+{
+    if ( ((Key *) k)->print )
+        ((Key *) k)->print( ((Key *) k)->data );
+
+    else
+        printf("BLANK");
+}
+
 unsigned long key_hash(Key *k, size_t lMaxSize)
 {
     return genhash( k->data, k->nSize, lMaxSize );
@@ -500,6 +509,55 @@ Key *hash_getkey(Hash *h, void *pKeyValue, int nKeySize)
         }
     }
     
+    return NULL;
+}
+
+Key *hash_getkeybyitem(Hash *h, Item *i)
+{
+    return hash_getkeybyitem2(h, i->data, i->nSize);
+}
+
+Key *hash_getkeybyitem2(Hash *h, void *pItemValue, int nItemSize)
+{
+    Key *pKey;
+    Item *pItem;
+    size_t ulPos = 0;
+    bool bFound = false;
+
+    while ( !bFound && hash_next(h, &ulPos, &pKey, &pItem) )
+        if ( pItem->nSize == nItemSize && pItem->compare )
+            if ( pItem->compare(pItem->data, pItemValue) == 0 )
+                bFound = true;
+
+    if ( h->type == CHAINING && h->lNextItemIdx != 0 )
+        h->lNextItemIdx = 0;
+
+    return ( bFound ? pKey : NULL );
+    
+}
+
+List *hash_getkeylistbyitem(Hash *h, Item *i)
+{
+    return hash_getkeylistbyitem2(h, i->data, i->nSize);
+}
+
+List *hash_getkeylistbyitem2(Hash *h, void *pItemValue, int nItemSize)
+{
+    List *pList;
+    Key *pKey;
+    Item *pItem;
+    size_t ulPos = 0;
+
+    if ( pList = llist_init() )
+    {
+        while ( hash_next(h, &ulPos, &pKey, &pItem) )
+            if ( pItem->nSize == nItemSize && pItem->compare )
+                if ( pItem->compare(pItem->data, pItemValue) == 0 )
+                    llist_insert(pList, pKey, sizeof(Key), malloc, free, key_print, NULL);
+
+        return pList;
+    }
+
     return NULL;
 }
 
