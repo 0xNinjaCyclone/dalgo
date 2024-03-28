@@ -113,7 +113,7 @@ __int8_t peterson_unlock(PetersonLock *pLock, pthread_t id)
 void peterson_cleanup(PetersonLock **pLock)
 {
     // Get rid of all thread instances
-    for ( PetersonThread **tmp = (*pLock)->instances; *tmp; free( *tmp++ ) );
+    for ( PetersonThread **tmp = (*pLock)->instances; (*pLock)->unNumberOfThreads--; free( *tmp++ ) );
 
     // Free the lock
     free( *pLock );
