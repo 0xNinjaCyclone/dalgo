@@ -162,6 +162,7 @@ void CharPrintA(void *x) { printf("%c", *(char *)x); }
 void CharPrintW(void *x) { wprintf(L"%c", *(wchar_t *)x); }
 void ShortPrint(void *x) { printf("%hi", *(short *)x); }
 void UShortPrint(void *x) { printf("%hu", *(unsigned short *)x); }
+void FloatPrint(void *x) { printf("%0.2f", *(float *)x); };
 void IntPrint(void *x) { printf("%d", *(int *)x); }
 void UIntPrint(void *x) { printf("%u", *(unsigned int *)x); }
 void LongPrint(void *x) { printf("%ld", *(long *)x); }

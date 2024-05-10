@@ -56,24 +56,24 @@ size_t heap_parentidx(Heap *h, size_t ulIdx)
 
 size_t heap_leftidx(Heap *h, size_t ulIdx)
 {
-    if ( (ulIdx * 2) + 1 >= h->ulSize )
+    if ( (ulIdx = ulIdx * 2 + 1) >= h->ulSize )
         return -1;
 
-    return ( 2 * ulIdx + 1 );
+    return ulIdx;
 }
 
 size_t heap_rightidx(Heap *h, size_t ulIdx)
 {
-    if ( (ulIdx * 2) + 2 >= h->ulSize )
+    if ( (ulIdx = ulIdx * 2 + 2) >= h->ulSize )
         return -1;
 
-    return ( 2 * ulIdx + 2 );
+    return ulIdx;
 }
 
 int heap_insert(Heap *h, void *item)
 {
     HNode *node;
-    size_t ulParentIdx;
+    size_t ulIdx;
 
     if ( heap_full(h) )
         return 0;
@@ -83,12 +83,17 @@ int heap_insert(Heap *h, void *item)
         
         h->nodes[ h->ulSize++ ] = node;
 
-        if ( (ulParentIdx = heap_parentidx(h, h->ulSize - 1)) != -1 )
-            do {
+        if ( h->ulSize > 1 )
+        {
+            ulIdx = h->ulSize / 2 - 1;
 
-                heap_heapify(h, ulParentIdx);
-            
-            } while ( ulParentIdx-- );
+            if ( ulIdx >= 0 && ulIdx < h->ulSize )
+                do {
+
+                    heap_heapify(h, ulIdx);
+                
+                } while ( ulIdx-- );
+        }
 
         
         return 1; 
@@ -114,12 +119,17 @@ int heap_delete(Heap *h, void *item)
     heap_swap( h, ulIdx, h->ulSize );
 
     // Reheapify the tree
-    if ( h->ulSize && (ulIdx = heap_parentidx(h, h->ulSize-1)) != -1 )
-        do {
+    if ( h->ulSize > 1 )
+    {
+        ulIdx = h->ulSize / 2 - 1;
 
-            heap_heapify(h, ulIdx);
+        if ( ulIdx >= 0 && ulIdx < h->ulSize )
+            do {
 
-        } while ( ulIdx-- );
+                heap_heapify(h, ulIdx);
+            
+            } while ( ulIdx-- );
+    }
     
     return 1;
 }
@@ -175,13 +185,20 @@ void heap_heapify(Heap *h, size_t ulIdx)
     size_t ulRight;
     size_t ulItemIdx;
 
-    ulItemIdx = ulIdx;
-    ulLeft = heap_leftidx(h, ulIdx);
+    
+    if ( (ulLeft = heap_leftidx(h, ulIdx)) == -1 ) 
+    {
+        h->nodes[ ulIdx ]->left = NULL;
+        h->nodes[ ulIdx ]->right = NULL;
+        return;
+    }
+
     ulRight = heap_rightidx(h, ulIdx);
+    ulItemIdx = ulIdx;
 
     if ( h->type == MINHEAP )
     {
-        if ( ulLeft != -1 && h->compare(h->nodes[ulLeft]->data, h->nodes[ulItemIdx]->data) < 0 )
+        if ( h->compare(h->nodes[ulLeft]->data, h->nodes[ulItemIdx]->data) < 0 )
             ulItemIdx = ulLeft;
 
         if ( ulRight != -1 && h->compare(h->nodes[ulRight]->data, h->nodes[ulItemIdx]->data) < 0 )
@@ -191,7 +208,7 @@ void heap_heapify(Heap *h, size_t ulIdx)
 
     else if ( h->type == MAXHEAP )
     {
-        if ( ulLeft != -1 && h->compare(h->nodes[ulLeft]->data, h->nodes[ulItemIdx]->data) > 0 )
+        if ( h->compare(h->nodes[ulLeft]->data, h->nodes[ulItemIdx]->data) > 0 )
             ulItemIdx = ulLeft;
 
         if ( ulRight != -1 && h->compare(h->nodes[ulRight]->data, h->nodes[ulItemIdx]->data) > 0 )
@@ -210,22 +227,9 @@ void heap_heapify(Heap *h, size_t ulIdx)
     }
 
     // Set left and right nodes addresses
-    if ( ulLeft == -1 )
-    {
-        h->nodes[ ulIdx ]->left = NULL;
-        h->nodes[ ulIdx ]->right = NULL;
-    } 
+    h->nodes[ ulIdx ]->left = h->nodes[ ulLeft ];
+    h->nodes[ ulIdx ]->right = ( ulRight != -1 ) ? h->nodes[ ulRight ] : NULL;
     
-    else {
-        h->nodes[ ulIdx ]->left = h->nodes[ ulLeft ];
-
-        if ( ulRight == -1 )
-            h->nodes[ ulIdx ]->right = NULL;
-        
-        else
-            h->nodes[ ulIdx ]->right = h->nodes[ ulRight ];
-        
-    }
 }
 
 void heap_swap(Heap *h, size_t ulNode1Idx, size_t ulNode2Idx)
@@ -256,7 +260,7 @@ int heap_build(Heap *h, void *data, size_t ulSize)
     }
 
     
-    if ( (ulIdx = heap_parentidx(h, h->ulSize - 1)) == -1 )
+    if ( !(h->ulSize > 1 && (ulIdx = h->ulSize / 2 - 1) >= 0 && ulIdx < h->ulSize) )
         return 0;
 
     do {

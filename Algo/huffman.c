@@ -7,7 +7,7 @@
 
 #include "huffman.h"
 
-HuffmanTreeNode *huffman_calcfreq(unsigned char *data, size_t ulSize, __uint16_t *unpNumberOfNodes)
+HuffmanTreeNode *huffman_countfreq(unsigned char *data, size_t ulSize, __uint16_t *unpNumberOfNodes)
 {
     HuffmanTreeNode *pNodes;
     Hash *htable;
@@ -86,10 +86,10 @@ HuffmanTreeNode *huffman_parsefreq(unsigned char *data, __uint16_t *unpNumberOfN
 
     for ( __uint16_t unIdx = 0; unIdx < *unpNumberOfNodes; unIdx++ )
     {
-        pNodes[ unIdx ].data = ((HuffmanItem *) data)->data;
-        pNodes[ unIdx ].ulFrequency = ((HuffmanItem *) data)->unFrequency;
-        pNodes[ unIdx ].left = NULL;
-        pNodes[ unIdx ].right = NULL;
+        ( pNodes + unIdx )->data = ((HuffmanItem *) data)->data;
+        ( pNodes + unIdx )->ulFrequency = ((HuffmanItem *) data)->unFrequency;
+        ( pNodes + unIdx )->left = NULL;
+        ( pNodes + unIdx )->right = NULL;
 
         // Next freq entry
         data += sizeof( HuffmanItem );
@@ -271,7 +271,7 @@ unsigned char *huffman_encode(unsigned char *data, size_t ulSize, bool bForceEnc
     __uint8_t unBitPos = 8;
     size_t ulBitsLen, ulPos = 0;
 
-    if ( !(pHuffmanNodes = huffman_calcfreq(data, ulSize, &unActive)) )
+    if ( !(pHuffmanNodes = huffman_countfreq(data, ulSize, &unActive)) )
         goto LEAVE;
 
     if ( !(pHuffmanRoot = huffman_build(pHuffmanNodes, unActive)) )
@@ -386,7 +386,7 @@ unsigned char *huffman_decode(unsigned char *data, size_t ulSize, bool bForceDec
     {
         // Check if the current bit is set
         if ( *data & (1 << ulBitPos % 8) )
-            (*pTempBitsTable)++;
+            ( *pTempBitsTable )++;
 
         // The end of current byte ( jump on the next one ) 
         if ( ulBitPos % 8 == 0 )
@@ -431,7 +431,7 @@ LEAVE:
 
 bool huffman_lookup(HuffmanTreeNode *pRoot, unsigned char *pResult, __uint8_t **pBitsTable)
 {
-    if ( ! pRoot->right && ! pRoot->left )
+    if ( !pRoot->right && !pRoot->left )
     {
         *pResult = pRoot->data;
         return true;
@@ -439,17 +439,17 @@ bool huffman_lookup(HuffmanTreeNode *pRoot, unsigned char *pResult, __uint8_t **
     
     if ( *(*pBitsTable)++ )
     {
-        if ( ! pRoot->right )
+        if ( !pRoot->right )
             return false;
 
-        huffman_lookup( pRoot->right, pResult, pBitsTable );
+        return huffman_lookup( pRoot->right, pResult, pBitsTable );
     }
 
     else {
-        if ( ! pRoot->left )
+        if ( !pRoot->left )
             return false;
 
-        huffman_lookup( pRoot->left, pResult, pBitsTable );
+        return huffman_lookup( pRoot->left, pResult, pBitsTable );
     }
     
 }

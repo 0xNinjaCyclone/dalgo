@@ -36,9 +36,9 @@ bool peterson_register(PetersonLock *pLock, pthread_t id)
         return false;
 
     pThrdInstance->id = id;
-    pThrdInstance->unIndex = pLock->unNumberOfThreads;
+    pThrdInstance->unIndex = pLock->unNumberOfThreads++;
     pThrdInstance->bFlag = false;
-    pLock->instances[ pLock->unNumberOfThreads++ ] = pThrdInstance;
+    pLock->instances[ pThrdInstance->unIndex ] = pThrdInstance;
     return true;
 }
 

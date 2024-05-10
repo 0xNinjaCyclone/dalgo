@@ -58,10 +58,10 @@ size_t partition(
     // Take the last element as a pivot
     pPivot = (void *)((__SIZE_TYPE__) data + lEnd * nItemSize);
     
-    for (size_t i = lStart; i < lEnd; i++)
+    for (size_t i = lStart; i <= lEnd; i++)
         // If the current item less than or equal the pivot, set it at the correct pos
         // And calculate the correct position of the pivot ( which will be the result of counting the smaller items  )
-        if ( compare((void *)((__SIZE_TYPE__) data + i * nItemSize), pPivot) <= 0 )
+        if ( i == lEnd || compare((void *)((__SIZE_TYPE__) data + i * nItemSize), pPivot) <= 0 )
             GSwap(
                 (void *)((__SIZE_TYPE__) data + lIdx++ * nItemSize),
                 (void *)((__SIZE_TYPE__) data + i * nItemSize),
@@ -69,15 +69,7 @@ size_t partition(
             );
 
 
-    // If the pivot was not in the correct position
-    if ( lIdx != lStart )
-        GSwap(
-            (void *)((__SIZE_TYPE__) data + lIdx * nItemSize),
-            (void *)((__SIZE_TYPE__) data + lEnd * nItemSize),
-            nItemSize
-        );
-
-    return lIdx; // return the index of the pivot
+    return --lIdx; // return the index of the pivot
 }
 
 int quick_select(

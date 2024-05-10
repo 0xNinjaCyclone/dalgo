@@ -33,6 +33,7 @@ void CharPrintA(void *x);
 void CharPrintA(void *x);
 void ShortPrint(void *x);
 void UShortPrint(void *x);
+void FloatPrint(void *x);
 void IntPrint(void *x);
 void UIntPrint(void *x);
 void LongPrint(void *x);

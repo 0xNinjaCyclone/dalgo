@@ -48,7 +48,7 @@ int main()
     unsigned char data[] = "BCCADBBDABBCCADDCCEE";
     __uint16_t unSize = 0;
 
-    pHuffmanNodes = huffman_calcfreq(data, sizeof(data) - 1, &unSize);
+    pHuffmanNodes = huffman_countfreq(data, sizeof(data) - 1, &unSize);
 
     if ( !(pHuffmanRoot = huffman_build(pHuffmanNodes, unSize)) )
         return 1;
