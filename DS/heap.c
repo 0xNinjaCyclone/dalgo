@@ -79,23 +79,9 @@ int heap_insert(Heap *h, void *item)
         return 0;
 
     if ( node = heap_build_node(h, item) )
-    {
-        
-        h->nodes[ h->ulSize++ ] = node;
-
-        if ( h->ulSize > 1 )
-        {
-            ulIdx = h->ulSize / 2 - 1;
-
-            if ( ulIdx >= 0 && ulIdx < h->ulSize )
-                do {
-
-                    heap_heapify(h, ulIdx);
-                
-                } while ( ulIdx-- );
-        }
-
-        
+    {   
+        h->nodes[ h->ulSize ] = node;
+        heap_heapify( h, h->ulSize++, BOTTOM_UP );
         return 1; 
     }
     
@@ -111,6 +97,9 @@ int heap_delete(Heap *h, void *item)
 
     if ( (ulIdx = heap_find(h, item)) == -1 )
         return 0;
+    
+    if ( ulIdx == HROOT )
+        return heap_pop( h );
 
     heap_destroy_node( h, h->nodes[ulIdx] );
     h->ulSize--;
@@ -121,16 +110,34 @@ int heap_delete(Heap *h, void *item)
     // Reheapify the tree
     if ( h->ulSize > 1 )
     {
-        ulIdx = h->ulSize / 2 - 1;
+        ulIdx = heap_parentidx(h, ulIdx); 
 
         if ( ulIdx >= 0 && ulIdx < h->ulSize )
             do {
 
-                heap_heapify(h, ulIdx);
+                heap_heapify(h, ulIdx, TOP_DOWN);
             
             } while ( ulIdx-- );
     }
     
+    return 1;
+}
+
+int heap_pop(Heap *h)
+{
+    if ( heap_empty(h) )
+        return 0;
+
+    heap_destroy_node( h, h->nodes[HROOT] );
+    
+    if ( --h->ulSize ) {
+        // Replace the target node with the last node
+        heap_swap( h, HROOT, h->ulSize );
+
+        // Reheapify the tree
+        heap_heapify( h, HROOT, TOP_DOWN );
+    }
+
     return 1;
 }
 
@@ -145,17 +152,20 @@ size_t heap_find(Heap *h, void *item)
 size_t heap_find2(Heap *h, void *item, size_t ulIdx)
 {
     size_t ulChildIdx, ulRes;
+    int nDelta;
 
     if ( ulIdx >= h->ulSize )
         return -1;
 
-    if ( h->type == MINHEAP && h->compare(h->nodes[ulIdx]->data, item) > 0 )
+    nDelta = h->compare(h->nodes[ulIdx]->data, item);
+
+    if ( h->type == MINHEAP && nDelta > 0 )
         return -1;
 
-    if ( h->type == MAXHEAP && h->compare(h->nodes[ulIdx]->data, item) < 0 )
+    if ( h->type == MAXHEAP && nDelta < 0 )
         return -1;
 
-    if ( h->compare(h->nodes[ulIdx]->data, item) == 0 )
+    if ( nDelta == 0 )
         return ulIdx;
 
     if ( (ulChildIdx = heap_leftidx(h, ulIdx)) != -1 )
@@ -179,51 +189,73 @@ HNode *heap_root(Heap *h)
     return h->nodes[ HROOT ];
 }
 
-void heap_heapify(Heap *h, size_t ulIdx)
+void heap_heapify(Heap *h, size_t ulIdx, HeapifyType type)
 {
+    size_t ulParent;
     size_t ulLeft;
     size_t ulRight;
     size_t ulItemIdx;
 
-    
     if ( (ulLeft = heap_leftidx(h, ulIdx)) == -1 ) 
     {
         h->nodes[ ulIdx ]->left = NULL;
         h->nodes[ ulIdx ]->right = NULL;
-        return;
     }
 
     ulRight = heap_rightidx(h, ulIdx);
     ulItemIdx = ulIdx;
 
-    if ( h->type == MINHEAP )
-    {
-        if ( h->compare(h->nodes[ulLeft]->data, h->nodes[ulItemIdx]->data) < 0 )
-            ulItemIdx = ulLeft;
+    if ( type == TOP_DOWN )
+    {    
+        if ( ulLeft == -1 )
+            return;
 
-        if ( ulRight != -1 && h->compare(h->nodes[ulRight]->data, h->nodes[ulItemIdx]->data) < 0 )
-            ulItemIdx = ulRight;
+        if ( h->type == MINHEAP )
+        {
+            if ( h->compare(h->nodes[ulLeft]->data, h->nodes[ulItemIdx]->data) < 0 )
+                ulItemIdx = ulLeft;
 
+            if ( ulRight != -1 && h->compare(h->nodes[ulRight]->data, h->nodes[ulItemIdx]->data) < 0 )
+                ulItemIdx = ulRight;
+
+        }
+
+        else if ( h->type == MAXHEAP )
+        {
+            if ( h->compare(h->nodes[ulLeft]->data, h->nodes[ulItemIdx]->data) > 0 )
+                ulItemIdx = ulLeft;
+
+            if ( ulRight != -1 && h->compare(h->nodes[ulRight]->data, h->nodes[ulItemIdx]->data) > 0 )
+                ulItemIdx = ulRight;
+            
+        }
+
+        else
+            return;
     }
 
-    else if ( h->type == MAXHEAP )
+    else if ( type == BOTTOM_UP )
     {
-        if ( h->compare(h->nodes[ulLeft]->data, h->nodes[ulItemIdx]->data) > 0 )
-            ulItemIdx = ulLeft;
+        ulParent = heap_parentidx(h, ulItemIdx);
 
-        if ( ulRight != -1 && h->compare(h->nodes[ulRight]->data, h->nodes[ulItemIdx]->data) > 0 )
-            ulItemIdx = ulRight;
+        if ( ulParent == -1 )
+            return;
         
+        if ( h->type == MINHEAP && h->compare(h->nodes[ulParent]->data, h->nodes[ulItemIdx]->data) > 0 )
+            ulItemIdx = ulParent;
+
+        if ( h->type == MAXHEAP && h->compare(h->nodes[ulParent]->data, h->nodes[ulItemIdx]->data) < 0 )
+            ulItemIdx = ulParent;
     }
 
-    else
+    else 
         return;
 
     // If the node wasn't in the correct position
     if ( ulIdx != ulItemIdx )
     {
         heap_swap(h, ulIdx, ulItemIdx);
-        heap_heapify(h, ulItemIdx);
+        heap_heapify(h, ulItemIdx, type);
     }
 
     // Set left and right nodes addresses
@@ -265,7 +297,7 @@ int heap_build(Heap *h, void *data, size_t ulSize)
 
     do {
         
-        heap_heapify(h, ulIdx);
+        heap_heapify(h, ulIdx, TOP_DOWN);
 
     } while ( ulIdx-- );
     

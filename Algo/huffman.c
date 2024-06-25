@@ -141,10 +141,10 @@ HuffmanTreeNode *huffman_build(HuffmanTreeNode *hNodes, __uint16_t unSize)
     {
         hLeftNode = *(HuffmanTreeNode *) heap_root(htree)->data;
         hpLeftTreeNode = huffman_newnode( &hLeftNode );
-        heap_delete(htree, &hLeftNode);
+        heap_pop(htree);
         hRightNode = *(HuffmanTreeNode *) heap_root(htree)->data;
         hpRightTreeNode = huffman_newnode( &hRightNode );
-        heap_delete(htree, &hRightNode);
+        heap_pop(htree);
         hNode.ulFrequency = hLeftNode.ulFrequency + hRightNode.ulFrequency;
         hNode.left = hpLeftTreeNode;
         hNode.right = hpRightTreeNode;
@@ -154,7 +154,7 @@ HuffmanTreeNode *huffman_build(HuffmanTreeNode *hNodes, __uint16_t unSize)
 
     hNode = *(HuffmanTreeNode *) heap_root( htree )->data;
     hpTreeNode = huffman_newnode( &hNode );
-    heap_delete(htree, &hNode);
+    heap_pop(htree);
     heap_cleanup( &htree );
 
     return hpTreeNode;

@@ -271,7 +271,7 @@ void heap_sort(void *data, size_t ulSize, int nItemSize, int (* compare)(void *,
     {
         root = heap_root( htree );
         memcpy( (void *) data + ulSize * nItemSize, root->data, nItemSize );
-        heap_delete( htree, root->data );
+        heap_pop( htree );
     }
 
 LEAVE:

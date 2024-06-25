@@ -7,6 +7,7 @@
 #define HROOT 0
 
 typedef enum { MINHEAP, MAXHEAP } HeapType;
+typedef enum { BOTTOM_UP, TOP_DOWN } HeapifyType;
 typedef struct _HNode HNode;
 
 struct _HNode
@@ -35,11 +36,12 @@ int heap_empty(Heap *h);
 int heap_full(Heap *h);
 int heap_insert(Heap *h, void *item);
 int heap_delete(Heap *h, void *item);
+int heap_pop(Heap *h);
 size_t heap_find(Heap *h, void *item);
 size_t heap_find2(Heap *h, void *item, size_t ulIdx);
 HNode *heap_root(Heap *h);
 int heap_build(Heap *h, void *data, size_t ulSize);
-void heap_heapify(Heap *h, size_t ulIdx);
+void heap_heapify(Heap *h, size_t ulIdx, HeapifyType type);
 void heap_swap(Heap *h, size_t ulNode1Idx, size_t ulNode2Idx);
 void heap_cleanup(Heap **h);
 
