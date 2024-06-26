@@ -2,6 +2,8 @@
 #define _dalgo_heap
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 
 #define HROOT 0
@@ -43,6 +45,7 @@ HNode *heap_root(Heap *h);
 int heap_build(Heap *h, void *data, size_t ulSize);
 void heap_heapify(Heap *h, size_t ulIdx, HeapifyType type);
 void heap_swap(Heap *h, size_t ulNode1Idx, size_t ulNode2Idx);
+void heap_print(Heap *h, bool bUseBranchesPtrs);
 void heap_cleanup(Heap **h);
 
 HNode *heap_build_node(Heap *h, void *item);

@@ -73,7 +73,6 @@ size_t heap_rightidx(Heap *h, size_t ulIdx)
 int heap_insert(Heap *h, void *item)
 {
     HNode *node;
-    size_t ulIdx;
 
     if ( heap_full(h) )
         return 0;
@@ -181,10 +180,37 @@ size_t heap_find2(Heap *h, void *item, size_t ulIdx)
     return -1;
 }
 
+void heap_branching(Heap *h, size_t ulIdx)
+{
+    size_t ulChildIdx;
+
+    if ( (ulChildIdx = heap_leftidx(h, ulIdx)) != -1 )
+    {
+        h->nodes[ ulIdx ]->left = h->nodes[ ulChildIdx ];
+        heap_branching(h, ulChildIdx);
+        
+        if ( (ulChildIdx = heap_rightidx(h, ulIdx)) != -1 ) 
+        {
+            h->nodes[ ulIdx ]->right = h->nodes[ ulChildIdx ];
+            heap_branching(h, ulChildIdx);
+        }
+
+        else
+            h->nodes[ ulIdx ]->right = NULL;
+    }
+
+    else {
+        h->nodes[ ulIdx ]->left = NULL;
+        h->nodes[ ulIdx ]->right = NULL;
+    }
+}
+
 HNode *heap_root(Heap *h)
 {
     if ( heap_empty(h) )
         return NULL;
+
+    heap_branching( h, HROOT );
 
     return h->nodes[ HROOT ];
 }
@@ -196,12 +222,7 @@ void heap_heapify(Heap *h, size_t ulIdx, HeapifyType type)
     size_t ulRight;
     size_t ulItemIdx;
 
-    if ( (ulLeft = heap_leftidx(h, ulIdx)) == -1 ) 
-    {
-        h->nodes[ ulIdx ]->left = NULL;
-        h->nodes[ ulIdx ]->right = NULL;
-    }
-
+    ulLeft = heap_leftidx(h, ulIdx);
     ulRight = heap_rightidx(h, ulIdx);
     ulItemIdx = ulIdx;
 
@@ -257,10 +278,6 @@ void heap_heapify(Heap *h, size_t ulIdx, HeapifyType type)
         heap_swap(h, ulIdx, ulItemIdx);
         heap_heapify(h, ulItemIdx, type);
     }
-
-    // Set left and right nodes addresses
-    h->nodes[ ulIdx ]->left = h->nodes[ ulLeft ];
-    h->nodes[ ulIdx ]->right = ( ulRight != -1 ) ? h->nodes[ ulRight ] : NULL;
     
 }
 
@@ -302,6 +319,56 @@ int heap_build(Heap *h, void *data, size_t ulSize)
     } while ( ulIdx-- );
     
     return 1;
+}
+
+void heap_print3(Heap *h, size_t ulIdx)
+{
+    size_t ulChildIdx;
+
+    putchar(' ');
+    h->print( h->nodes[ulIdx]->data );
+
+    if ( (ulChildIdx = heap_leftidx(h, ulIdx)) != -1 )
+    {
+        heap_print3( h, ulChildIdx );
+
+        if ( (ulChildIdx = heap_rightidx(h, ulIdx)) != -1 )
+            heap_print3( h, ulChildIdx );
+    }
+}
+
+void heap_print2(Heap *h, HNode *pRoot)
+{
+    putchar(' ');
+    h->print( pRoot->data );
+    
+    if ( pRoot->left ) {
+        heap_print2( h, pRoot->left );
+
+        if ( pRoot->right )
+            heap_print2( h, pRoot->right );
+    }
+}
+
+void heap_print(Heap *h, bool bUseBranchesPtrs)
+{
+    HNode *pRoot;
+
+    if ( bUseBranchesPtrs ) {
+        if ( pRoot = heap_root(h) ) {
+            putchar('|');
+            heap_print2(h, pRoot);
+            puts(" |");
+        }
+    }
+
+    else {
+        if ( !heap_empty(h) ) {
+            putchar('|');
+            heap_print3(h, HROOT);
+            puts(" |");
+        }
+    }
 }
 
 void heap_cleanup(Heap **h)
