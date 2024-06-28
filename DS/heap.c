@@ -215,6 +215,11 @@ HNode *heap_root(Heap *h)
     return h->nodes[ HROOT ];
 }
 
+void *heap_rootdata(Heap *h)
+{
+    return ( !heap_empty(h) ) ? h->nodes[HROOT]->data : NULL;
+}
+
 void heap_heapify(Heap *h, size_t ulIdx, HeapifyType type)
 {
     size_t ulParent;
@@ -296,7 +301,7 @@ int heap_build(Heap *h, void *data, size_t ulSize)
     HNode *node;
     size_t ulIdx;
 
-    if ( ulSize > h->ulMaxSize )
+    if ( !heap_empty(h) || ulSize > h->ulMaxSize )
         return 0;
 
     // Insert all items into the heap
@@ -407,8 +412,7 @@ void heap_destroy_nodes(Heap *h)
     while ( h->ulSize-- )
     {
         heap_destroy_node(h, *temp);
-        *temp = NULL;
-        temp++;
+        *temp++ = NULL;
     }
 }
 

@@ -258,7 +258,6 @@ void merge_sort2(void *data, int nItemSize, size_t lStart, size_t lEnd, int (* c
 void heap_sort(void *data, size_t ulSize, int nItemSize, int (* compare)(void *, void *))
 {
     Heap *htree;
-    HNode *root;
 
     if ( ! (htree = heap_init(ulSize, nItemSize, MAXHEAP, malloc, free, NULL, compare)) )
         goto LEAVE;
@@ -269,8 +268,7 @@ void heap_sort(void *data, size_t ulSize, int nItemSize, int (* compare)(void *,
     
     while ( ulSize-- )
     {
-        root = heap_root( htree );
-        memcpy( (void *) data + ulSize * nItemSize, root->data, nItemSize );
+        memcpy( (void *) data + ulSize * nItemSize, heap_rootdata(htree), nItemSize );
         heap_pop( htree );
     }
 
