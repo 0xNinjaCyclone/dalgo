@@ -110,7 +110,7 @@ int llist_updateAt(List *l, size_t lIdx, void *item)
 {
     LNode *node;
 
-    if ( lIdx < 0 || lIdx > llist_size(l) )
+    if ( lIdx < 0 || lIdx >= llist_size(l) )
         return 0;
 
     if ( lIdx == 0 )
@@ -137,7 +137,7 @@ void *llist_getitemAt(List *l, size_t lIdx)
 {
     LNode *node;
 
-    if ( lIdx < 0 || lIdx > llist_size(l) )
+    if ( lIdx < 0 || lIdx >= llist_size(l) )
         return NULL;
 
     if ( lIdx == 0 )

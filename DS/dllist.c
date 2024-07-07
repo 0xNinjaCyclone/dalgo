@@ -125,7 +125,7 @@ int dllist_updateAt(DoublyLinkedList *l, size_t lIdx, void *item)
 {
     DLNode *node;
 
-    if ( lIdx < 0 || lIdx > dllist_size(l) )
+    if ( lIdx < 0 || lIdx >= dllist_size(l) )
         return 0;
 
     if ( lIdx == 0 )
@@ -163,7 +163,7 @@ void *dllist_getitemAt(DoublyLinkedList *l, size_t lIdx)
 {
     DLNode *node;
 
-    if ( lIdx < 0 || lIdx > dllist_size(l) )
+    if ( lIdx < 0 || lIdx >= dllist_size(l) )
         return NULL;
 
     if ( lIdx == 0 )
