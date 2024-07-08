@@ -48,17 +48,13 @@ bool json_parse_obj(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
         }
 
         if ( !(pTemp = json_item_new()) ) {
-#ifndef USE_DALGO_STRUCTURES
-            if ( pHead ) {
-                json_item_delete( &pHead );
-            }
-#else
-            hash_destroy( &pObj );
-#endif
-            return false;
+            goto FAIL;
         }
-        if ( !json_parse_str(pJson, pTemp, pBuffer) )
-            return false;
+
+        if ( !json_parse_str(pJson, pTemp, pBuffer) ) {
+            json_item_delete( &pTemp );
+            goto FAIL;
+        }
 
 #ifndef USE_DALGO_STRUCTURES
         if ( !pHead )
@@ -75,37 +71,36 @@ bool json_parse_obj(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
         pObjName = key_new(pTemp->pValue, strlen(pTemp->pValue)+1, StrPrintA, StrCmpA);
 
         if ( !pObjName ) {
-            hash_destroy( &pObj );
-            return false;
+            goto FAIL;
         }
 #endif
         pTemp->pValue = NULL;
+        pJson->nItems--; // The object name is not a new item (json_parse_str() doesn't know that)
         
         JSON_SKIP(pBuffer);
 
         if ( !(JSON_CANREAD(pBuffer, 1) && *pBuffer->data == JSON_COLON) ) {
-#ifndef USE_DALGO_STRUCTURES
-            json_item_delete( &pHead );
-#else
-            hash_destroy( &pObj );
+#ifdef USE_DALGO_STRUCTURES
             key_destroy( &pObjName );
 #endif
-            return false;
+            goto FAIL;
         }
 
         JSON_WALK(pBuffer, 1);
         JSON_SKIP(pBuffer);
 
         if ( !json_parse_val(pJson, pTemp, pBuffer) ) {
-            return false;
+#ifdef USE_DALGO_STRUCTURES
+            key_destroy( &pObjName );
+#endif
+            goto FAIL;
         }
 
 #ifdef USE_DALGO_STRUCTURES
         pObjItem = item_new(pTemp, sizeof(JsonItem), malloc, json_item_free, NULL, NULL);
 
         if ( !pObjItem || !hash_insert(pObj, pObjName, pObjItem) ) {
-            hash_destroy( &pObj );
-            return false;
+            goto FAIL;
         }
         
 #endif
@@ -116,12 +111,7 @@ bool json_parse_obj(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
 
 
     if ( !JSON_ISOBJECTEND(pBuffer) ) {
-#ifndef USE_DALGO_STRUCTURES
-        json_item_delete( &pHead );
-#else
-        hash_destroy( &pObj );
-#endif
-        return false;
+        goto FAIL;
     }
 
     JSON_WALK(pBuffer, 1);
@@ -132,6 +122,18 @@ bool json_parse_obj(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
 #endif
     pJson->nItems++;
     return true;
+
+FAIL:
+#ifndef USE_DALGO_STRUCTURES
+    if ( pHead ) {
+        json_item_delete( &pHead );
+    }
+#else
+    hash_destroy( &pObj );
+#endif
+    
+    return false;
+
 }
 
 bool json_parse_arr(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
@@ -169,16 +171,8 @@ bool json_parse_arr(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
         }
 
         if ( !(pTemp = json_item_new()) ) {
-#ifndef USE_DALGO_STRUCTURES
-            if ( pHead ) {
-                json_item_delete( &pHead );
-            }
-#else
-            llist_cleanup( &pArrItem );
-#endif
-            return false;
+            goto FAIL;
         }
-
 
 #ifndef USE_DALGO_STRUCTURES
         if ( !pHead )
@@ -191,15 +185,15 @@ bool json_parse_arr(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
 #endif
 
         if ( !json_parse_val(pJson, pTemp, pBuffer) ) {
-            return false;
+#ifdef USE_DALGO_STRUCTURES
+            json_item_delete( &pTemp );
+#endif
+            goto FAIL;
         }
 
 #ifdef USE_DALGO_STRUCTURES
         if ( !llist_insert(pArrItem, pTemp, sizeof(JsonItem), malloc, json_item_free, NULL, NULL) )
-        {
-            llist_cleanup( &pArrItem );
-            return false;
-        }
+            goto FAIL;
 
 #endif
 
@@ -208,12 +202,7 @@ bool json_parse_arr(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
     } while ( JSON_CANREAD(pBuffer, 1) && *pBuffer->data == JSON_COMMA );
 
     if ( !JSON_ISARRAYEND(pBuffer) ) {
-#ifndef USE_DALGO_STRUCTURES
-        json_item_delete( &pHead );
-#else
-        llist_cleanup( &pArrItem );
-#endif
-        return false;
+        goto FAIL;
     }
 
     JSON_WALK(pBuffer, 1);
@@ -224,6 +213,17 @@ bool json_parse_arr(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
 #endif
     pJson->nItems++;
     return true;
+
+FAIL:
+#ifndef USE_DALGO_STRUCTURES
+    if ( pHead ) {
+        json_item_delete( &pHead );
+    }
+#else
+    llist_cleanup( &pArrItem );
+#endif   
+    
+    return false;
 }
 
 bool json_parse_str(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
@@ -270,29 +270,29 @@ bool json_parse_str(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
             switch ( cSeq )
             {
             case 'b':
-                *cpStr++ = '\b';
+                *cpStr++ = JSON_BACKSPACE;
                 break;
             case 'f':
-                *cpStr++ = '\f';
+                *cpStr++ = JSON_FORMAT;
                 break;
             case 'n':
-                *cpStr++ = '\n';
+                *cpStr++ = JSON_LF;
                 break;
             case 'r':
-                *cpStr++ = '\r';
+                *cpStr++ = JSON_CR;
                 break;
             case 't':
-                *cpStr++ = '\t';
+                *cpStr++ = JSON_TAB;
                 break;
-            case '\"':
-            case '\\':
-            case '/':
+            case JSON_DQUOTE:
+            case JSON_BACKSLASH:
+            case JSON_SLASH:
                 *cpStr++ = cSeq;
                 break;
 
             /* UTF-16 literal */
             case 'u':
-                puts("UTF-16 NOT SUPPORTED!");
+                fprintf(stderr, "UTF-16 IS NOT SUPPORTED!\n");
 
             default:
                 free( pItem->pValue );
@@ -494,7 +494,7 @@ bool json_parse(Json *pJson, char *data)
     JsonBuffer buf;
     int nLen;
 
-    if ( !data && (nLen = strlen(data)) < 6 )
+    if ( !(data && (nLen = strlen(data)) >= 2) )
         return false;
 
     buf.data = data;
@@ -514,7 +514,7 @@ bool json_parsefile(Json *pJson, char *cpFileName)
         buf.nLength = ftell( fp );
         fseek( fp, 0L, SEEK_SET );
 
-        if ( buf.data = (char *) malloc(buf.nLength) )
+        if ( buf.nLength && (buf.data = (char *) malloc(buf.nLength)) )
         {
             fread( buf.data, buf.nLength, 1, fp );
             return json_parsebuffer( pJson, &buf );
@@ -549,7 +549,7 @@ void json_print_num(JsonItem *pItem)
         printf("%d", nNum);
 
     else {
-        printf("%f", dNum);
+        printf("%0.2f", dNum);
     }
 }
 
@@ -593,7 +593,7 @@ void json_print_obj(JsonItem *pItem)
         for ( int i = 0; i < g_nDepth; i++ )
             putchar( JSON_TAB );
             
-        printf("%s: ", cpName, pItem->pValue);
+        printf("%s: ", cpName);
         json_print_item( pItem );
 
 #ifndef USE_DALGO_STRUCTURES

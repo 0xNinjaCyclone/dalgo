@@ -7,10 +7,10 @@
 #include <string.h>
 #include <stdbool.h>
 #include <limits.h>
-#include <iconv.h>
 
 #if defined(USE_DALGO_STRUCTURES)
 #include "hash.h"
+#include "llist.h"
 #include "helpers.h"
 #endif
 
@@ -26,11 +26,14 @@
 #define JSON_OBJECT ( 1 << 6 )
 
 #define JSON_WHITESPACE ' '
+#define JSON_BACKSPACE '\b'
+#define JSON_FORMAT '\f'
 #define JSON_CR '\r'
 #define JSON_LF '\n'
 #define JSON_TAB '\t'
 #define JSON_NUL '\0'
 #define JSON_DQUOTE '"'
+#define JSON_SLASH '/'
 #define JSON_BACKSLASH '\\'
 #define JSON_COMMA ','
 #define JSON_COLON ':'
@@ -47,7 +50,7 @@
 #endif
 
 /* Macros */
-#define JSON_PARSABLE(pBuffer) ( pBuffer->nLength && *pBuffer->data != NUL )
+#define JSON_PARSABLE(pBuffer) ( pBuffer->nLength && *pBuffer->data != JSON_NUL )
 
 #define JSON_CANREAD(pBuffer, nLen) ( pBuffer->nLength >= nLen )
 
@@ -55,19 +58,19 @@
     JSON_CANREAD(pBuffer, 1) && \
     *pBuffer->data <= 0x20  && \
     pBuffer->data++ && pBuffer->nLength-- \
-);
+)
 
 #define JSON_WALK(pBuffer, n) pBuffer->data += n; pBuffer->nLength -= n 
 
-#define JSON_ISNULL(pBuffer) ( JSON_CANREAD(pBuffer, 4) && strncmp(pBuffer->data, "null", 4) == 0 )
-#define JSON_ISTRUE(pBuffer) ( JSON_CANREAD(pBuffer, 4) && strncmp(pBuffer->data, "true", 4) == 0 )
-#define JSON_ISFALSE(pBuffer) ( JSON_CANREAD(pBuffer, 5) && strncmp(pBuffer->data, "false", 5) == 0 )
-#define JSON_ISNUMBER(pBuffer) ( JSON_CANREAD(pBuffer, 1) && (*pBuffer->data == JSON_NEGSIGN || (*pBuffer->data >= 0x30 && *pBuffer->data <= 0x39)) )
-#define JSON_ISOBJECT(pBuffer) ( JSON_CANREAD(pBuffer, 1) && *pBuffer->data == JSON_OPENCBRACKET )
+#define JSON_ISNULL(pBuffer)      ( JSON_CANREAD(pBuffer, 4) && strncmp(pBuffer->data, "null", 4) == 0 )
+#define JSON_ISTRUE(pBuffer)      ( JSON_CANREAD(pBuffer, 4) && strncmp(pBuffer->data, "true", 4) == 0 )
+#define JSON_ISFALSE(pBuffer)     ( JSON_CANREAD(pBuffer, 5) && strncmp(pBuffer->data, "false", 5) == 0 )
+#define JSON_ISNUMBER(pBuffer)    ( JSON_CANREAD(pBuffer, 1) && (*pBuffer->data == JSON_NEGSIGN || (*pBuffer->data >= 0x30 && *pBuffer->data <= 0x39)) )
+#define JSON_ISOBJECT(pBuffer)    ( JSON_CANREAD(pBuffer, 1) && *pBuffer->data == JSON_OPENCBRACKET )
 #define JSON_ISOBJECTEND(pBuffer) ( JSON_CANREAD(pBuffer, 1) && *pBuffer->data == JSON_CLOSECBRACKET )
-#define JSON_ISARRAY(pBuffer) ( JSON_CANREAD(pBuffer, 1) && *pBuffer->data == JSON_OPENBRACKET )
-#define JSON_ISARRAYEND(pBuffer) ( JSON_CANREAD(pBuffer, 1) && *pBuffer->data == JSON_CLOSEBRACKET )
-#define JSON_ISSTRING(pBuffer) ( JSON_CANREAD(pBuffer, 1) && *pBuffer->data == JSON_DQUOTE )
+#define JSON_ISARRAY(pBuffer)     ( JSON_CANREAD(pBuffer, 1) && *pBuffer->data == JSON_OPENBRACKET )
+#define JSON_ISARRAYEND(pBuffer)  ( JSON_CANREAD(pBuffer, 1) && *pBuffer->data == JSON_CLOSEBRACKET )
+#define JSON_ISSTRING(pBuffer)    ( JSON_CANREAD(pBuffer, 1) && *pBuffer->data == JSON_DQUOTE )
 
 #define JSON_TYPE_ISNULL(pItem)   ( pItem->nType & JSON_NULL )
 #define JSON_TYPE_ISTRUE(pItem)   ( pItem->nType & JSON_TRUE )
