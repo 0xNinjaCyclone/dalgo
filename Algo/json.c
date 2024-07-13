@@ -69,6 +69,7 @@ bool json_parse_obj(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
 
 #else
         pObjName = key_new(pTemp->pValue, strlen(pTemp->pValue)+1, StrPrintA, StrCmpA);
+        free( pTemp->pValue );
 
         if ( !pObjName ) {
             goto FAIL;
@@ -98,6 +99,7 @@ bool json_parse_obj(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
 
 #ifdef USE_DALGO_STRUCTURES
         pObjItem = item_new(pTemp, sizeof(JsonItem), malloc, json_item_free, NULL, NULL);
+        free( pTemp );
 
         if ( !pObjItem || !hash_insert(pObj, pObjName, pObjItem) ) {
             goto FAIL;
@@ -195,6 +197,7 @@ bool json_parse_arr(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
         if ( !llist_insert(pArrItem, pTemp, sizeof(JsonItem), malloc, json_item_free, NULL, NULL) )
             goto FAIL;
 
+        free( pTemp );
 #endif
 
         JSON_SKIP(pBuffer);
@@ -347,7 +350,9 @@ bool json_parse_num(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
     if ( pEnd == cNumber )
         return false;
 
-    pItem->pValue = malloc( sizeof(double) );
+    if ( !(pItem->pValue = malloc(sizeof(double))) )
+        return false;
+        
     memcpy( pItem->pValue, (const void *)&dNumber, sizeof(double) );
     pJson->nItems++;
     return true;
@@ -506,6 +511,8 @@ bool json_parse(Json *pJson, char *data)
 bool json_parsefile(Json *pJson, char *cpFileName)
 {
     FILE *fp;
+    char *cpJsonData;
+    bool bSuccess;
     JsonBuffer buf;
 
     if ( fp = fopen(cpFileName, "r") )
@@ -514,10 +521,12 @@ bool json_parsefile(Json *pJson, char *cpFileName)
         buf.nLength = ftell( fp );
         fseek( fp, 0L, SEEK_SET );
 
-        if ( buf.nLength && (buf.data = (char *) malloc(buf.nLength)) )
+        if ( buf.nLength && (buf.data = cpJsonData = (char *) malloc(buf.nLength)) )
         {
             fread( buf.data, buf.nLength, 1, fp );
-            return json_parsebuffer( pJson, &buf );
+            bSuccess = json_parsebuffer( pJson, &buf );
+            free( cpJsonData );
+            return bSuccess;
         }
 
         fclose( fp );
