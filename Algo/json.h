@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <iconv.h>
 
 #if defined(USE_DALGO_STRUCTURES)
 #include "hash.h"

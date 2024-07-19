@@ -145,6 +145,7 @@ bool json_parse_arr(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
     JsonItem *pHead, *pCurr;
 #else
     List *pArrItem;
+    int nInserted;
 #endif
 
     if ( !JSON_ISARRAY(pBuffer) )
@@ -194,10 +195,12 @@ bool json_parse_arr(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
         }
 
 #ifdef USE_DALGO_STRUCTURES
-        if ( !llist_insert(pArrItem, pTemp, sizeof(JsonItem), malloc, json_item_free, NULL, NULL) )
+        nInserted = llist_insert(pArrItem, pTemp, sizeof(JsonItem), malloc, json_item_free, NULL, NULL);
+        free( pTemp );
+
+        if ( !nInserted )
             goto FAIL;
 
-        free( pTemp );
 #endif
 
         JSON_SKIP(pBuffer);
@@ -229,6 +232,53 @@ FAIL:
     return false;
 }
 
+bool utf16_to_utf8(char *cpHex, char **cppOutput)
+{
+    iconv_t cd;
+    char *cpInput;
+    size_t ulInSize, ulOutSize;
+    unsigned short wHex;
+    bool bSuccess;
+
+    wHex = 0;
+
+    /* Convert the hex value from string to numerical */
+    for ( int i = 0; i < 4; i++ )
+    {
+        if ( cpHex[i] >= 0x30 && cpHex[i] <= 0x39 )
+            wHex += (unsigned short) cpHex[i] - 0x30;
+
+        else if ( cpHex[i] >= 0x61 && cpHex[i] <= 0x66 )
+            wHex += (unsigned short) cpHex[i] + 0x0a - 0x61;
+
+        else if ( cpHex[i] >= 0x41 && cpHex[i] <= 0x46 )
+            wHex += (unsigned short) cpHex[i] + 0x0a - 0x41;
+
+        else {
+            return false;
+        }
+
+        // Make place for the next nibble
+        if ( i != 3 )
+            wHex <<= 4;
+    }
+    
+    if ( (cd = iconv_open("UTF8", "UTF16")) == (iconv_t)-1 )
+        return false;
+
+    cpInput = (char *) &wHex;
+    ulInSize = 2;
+    ulOutSize = 4;
+    bSuccess = false;
+
+    if ( ~iconv(cd, &cpInput, &ulInSize, cppOutput, &ulOutSize) )
+        bSuccess = true;
+
+    iconv_close( cd );
+
+    return bSuccess;
+}
+
 bool json_parse_str(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
 {
     char *cpStr, *cpStrEnd, cSeq;
@@ -250,6 +300,9 @@ bool json_parse_str(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
                 return false;
 
             cpStrEnd++;
+
+            if ( *cpStrEnd == 'u' )
+                nStrLen++; // We include '\u' in the result when we fail to convert into utf8
         }
 
         cpStrEnd++;
@@ -295,7 +348,13 @@ bool json_parse_str(Json *pJson, JsonItem *pItem, JsonBuffer *pBuffer)
 
             /* UTF-16 literal */
             case 'u':
-                fprintf(stderr, "UTF-16 IS NOT SUPPORTED!\n");
+                if ( !utf16_to_utf8(pBuffer->data+2, &cpStr) ) {
+                    strncpy( cpStr, pBuffer->data, 6 );
+                    cpStr += 6;
+                }
+
+                JSON_WALK(pBuffer, 4);
+                break;
 
             default:
                 free( pItem->pValue );
@@ -515,6 +574,8 @@ bool json_parsefile(Json *pJson, char *cpFileName)
     bool bSuccess;
     JsonBuffer buf;
 
+    bSuccess = false;
+
     if ( fp = fopen(cpFileName, "r") )
     {
         fseek( fp, 0L, SEEK_END );
@@ -526,13 +587,12 @@ bool json_parsefile(Json *pJson, char *cpFileName)
             fread( buf.data, buf.nLength, 1, fp );
             bSuccess = json_parsebuffer( pJson, &buf );
             free( cpJsonData );
-            return bSuccess;
         }
 
         fclose( fp );
     }
 
-    return false;
+    return bSuccess;
 }
 
 bool json_parsebuffer(Json *pJson, JsonBuffer *pBuffer)
