@@ -84,7 +84,10 @@ int GenericStrCmp(void *x, void *y, size_t lSizeX, size_t lSizeY, size_t nItemSi
     size_t lSize, lCtr;
     int nDelta;
 
-    lSize = ( lSizeX < lSizeY ) ? lSizeX : lSizeY;
+    if ( lSizeX != lSizeY )
+        return lSizeX - lSizeY;
+
+    lSize = lSizeX;
     lCtr = 0;
     
     while ( lSize-- )
@@ -169,6 +172,8 @@ void LongPrint(void *x) { printf("%ld", *(long *)x); }
 void ULongPrint(void *x) { printf("%lu", *(unsigned long *)x); }
 void StrPrintA(void *x) { printf("\"%s\"", (char *)x); }
 void StrPrintW(void *x) { wprintf(L"\"%s\"", (wchar_t *)x); }
+void StrPtrPrintA(void *x) { printf("\"%s\"", *(char **)x); }
+void StrPtrPrintW(void *x) { wprintf(L"\"%s\"", *(wchar_t **)x); }
 
 
 wchar_t *WideStrFromAnsi(char *cpStr, size_t lSize)

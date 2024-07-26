@@ -40,6 +40,8 @@ void LongPrint(void *x);
 void ULongPrint(void *x);
 void StrPrintA(void *x);
 void StrPrintW(void *x);
+void StrPtrPrintA(void *x);
+void StrPtrPrintW(void *x);
 
 wchar_t *WideStrFromAnsi(char *cpStr, size_t lSize);
 unsigned int calc_GCD(unsigned int a, unsigned int b);
