@@ -13,8 +13,9 @@ DoublyLinkedList *dllist_init()
 
     if ( l = malloc( sizeof(DoublyLinkedList) ) )
     {
-        l->first = l->last = NULL;
+        l->first = l->last = l->pLastAccessed = NULL;
         l->lSize = 0;
+        l->ulLastAccessedIdx = -1;
         return l;
     }
 
@@ -166,13 +167,32 @@ void *dllist_getitemAt(DoublyLinkedList *l, size_t lIdx)
     if ( lIdx < 0 || lIdx >= dllist_size(l) )
         return NULL;
 
-    if ( lIdx == 0 )
+    if ( lIdx == 0 ) {
+        l->ulLastAccessedIdx = lIdx;
+        l->pLastAccessed = l->first;
         return l->first->data;
+    }
 
     else if ( lIdx == dllist_size(l) - 1 )
         return l->last->data;
 
     else {
+        if ( l->pLastAccessed ) {
+            if ( l->ulLastAccessedIdx == lIdx-1 ) {
+                l->ulLastAccessedIdx++;
+                l->pLastAccessed = l->pLastAccessed->next;
+                return l->pLastAccessed->data;
+            }
+
+            else if ( l->ulLastAccessedIdx == lIdx+1 ) {
+                l->ulLastAccessedIdx--;
+                l->pLastAccessed = l->pLastAccessed->prev;
+                return l->pLastAccessed->data;
+            }
+        }
+
+        l->ulLastAccessedIdx = lIdx;
+
         /* Find the target node */
 
         if ( lIdx <= dllist_size(l) / 2 )
@@ -190,6 +210,8 @@ void *dllist_getitemAt(DoublyLinkedList *l, size_t lIdx)
                 ++lIdx;
                 node = node->prev
             );
+
+        l->pLastAccessed = node;
 
         return node->data;
     }   

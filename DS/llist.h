@@ -23,6 +23,8 @@ typedef struct
     LNode *first;
     LNode *last;
     size_t lSize;
+    LNode *pLastAccessed;
+    size_t ulLastAccessedIdx;
 } List;
 
 

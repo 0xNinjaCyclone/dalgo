@@ -13,8 +13,9 @@ List *llist_init()
 
     if ( l = malloc( sizeof(List) ) )
     {
-        l->first = l->last = NULL;
+        l->first = l->last = l->pLastAccessed = NULL;
         l->lSize = 0;
+        l->ulLastAccessedIdx = -1;
         return l;
     }
 
@@ -140,15 +141,28 @@ void *llist_getitemAt(List *l, size_t lIdx)
     if ( lIdx < 0 || lIdx >= llist_size(l) )
         return NULL;
 
-    if ( lIdx == 0 )
+    if ( lIdx == 0 ) {
+        l->ulLastAccessedIdx = lIdx;
+        l->pLastAccessed = l->first;
         return l->first->data;
+    }
 
     else if ( lIdx == llist_size(l) - 1 )
         return l->last->data;
 
     else {
+        if ( l->pLastAccessed && l->ulLastAccessedIdx == lIdx-1 ) {
+            l->ulLastAccessedIdx++;
+            l->pLastAccessed = l->pLastAccessed->next;
+            return l->pLastAccessed->data;
+        }
+
+        l->ulLastAccessedIdx = lIdx;
+
         /* move to the target node */
         for (node = l->first; lIdx--; node = node->next);
+
+        l->pLastAccessed = node;
 
         return node->data;
     }   

@@ -24,6 +24,8 @@ typedef struct
     DLNode *first;
     DLNode *last;
     size_t lSize;
+    DLNode *pLastAccessed;
+    size_t ulLastAccessedIdx;
 } DoublyLinkedList;
 
 
