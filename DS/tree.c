@@ -121,6 +121,37 @@ TreeNode *tree_find(Tree *t, TreeNode *pParent, void *data)
     return NULL;
 }
 
+static void tree_findnodes(Tree *t, TreeNode *pParent, void *data, List *pResult)
+{
+    void *pChild;
+
+    if ( t->compare(pParent->data, data) == 0 )
+        llist_insert( pResult, (void *) pParent, sizeof(TreeNode), malloc, free, NULL, NULL );
+
+    if ( pChild = pParent->pChild )
+    {
+#ifdef USE_DALGO_STRUCTURES
+        for ( int nIdx = 0; nIdx < llist_size((List *) pChild); nIdx++ )
+            tree_findnodes( t, (TreeNode *) llist_getitemAt((List *) pChild, nIdx), data, pResult );
+#else
+        do {
+            tree_findnodes( t, (TreeNode *) pChild, data, pResult );
+        } while ( pChild = ((TreeNode *) pChild)->pSibling );
+#endif
+    }
+}
+
+List *tree_findall(Tree *t, TreeNode *pParent, void *data)
+{
+    List *pTreeNodes = NULL;
+
+    if ( t->ulSize )
+        if ( pTreeNodes = llist_init() )
+            tree_findnodes( t, (pParent) ? pParent : t->pRoot, data, pTreeNodes );
+
+    return pTreeNodes;
+}
+
 void tree_print(Tree *t)
 {
     tree_print2(t, t->pRoot);
