@@ -70,6 +70,12 @@ int dllist_insertAtFirst(DoublyLinkedList *l, void *item, int nItemSize, void *(
 
         l->lSize++;
 
+        if ( l->pLastAccessed || ~l->ulLastAccessedIdx )
+        {
+            l->pLastAccessed = NULL;
+            l->ulLastAccessedIdx = -1;
+        }
+
         return 1;
     }
 
@@ -93,6 +99,15 @@ int dllist_insertAt(DoublyLinkedList *l, size_t lIdx, void *item, int nItemSize,
         /* Build the node and return if built failed */
         if ( !(node = build_node(item, nItemSize, allocate, deallocate, print, compare)) )
             return 0;
+
+        if ( l->pLastAccessed || ~l->ulLastAccessedIdx )
+        {
+            if ( lIdx <= l->ulLastAccessedIdx )
+            {
+                l->pLastAccessed = NULL;
+                l->ulLastAccessedIdx = -1;
+            }
+        }
 
         /* Find the item before the target */
         if ( lIdx <= dllist_size(l) / 2 )
@@ -178,7 +193,10 @@ void *dllist_getitemAt(DoublyLinkedList *l, size_t lIdx)
 
     else {
         if ( l->pLastAccessed ) {
-            if ( l->ulLastAccessedIdx == lIdx-1 ) {
+            if ( l->ulLastAccessedIdx == lIdx )
+                return l->pLastAccessed->data;
+
+            else if ( l->ulLastAccessedIdx == lIdx-1 ) {
                 l->ulLastAccessedIdx++;
                 l->pLastAccessed = l->pLastAccessed->next;
                 return l->pLastAccessed->data;
@@ -227,6 +245,12 @@ int dllist_delete(DoublyLinkedList *l)
     if ( dllist_empty(l) )
         return 0;
 
+    if ( l->pLastAccessed || ~l->ulLastAccessedIdx )
+    {
+        l->pLastAccessed = NULL;
+        l->ulLastAccessedIdx = -1;
+    }
+
     if ( dllist_size(l) == 1 ) {
         destroy_node( l->first );
         l->first = l->last = NULL;
@@ -252,6 +276,12 @@ int dllist_deleteAtFirst(DoublyLinkedList *l)
 
     if ( dllist_empty(l) )
         return 0;
+
+    if ( l->pLastAccessed || ~l->ulLastAccessedIdx )
+    {
+        l->pLastAccessed = NULL;
+        l->ulLastAccessedIdx = -1;
+    }
 
     /* if there is only one item */
     if ( dllist_size(l) == 1 ) {
@@ -285,6 +315,15 @@ int dllist_deleteAt(DoublyLinkedList *l, size_t lIdx)
         return dllist_delete(l);
 
     else {
+        if ( l->pLastAccessed || ~l->ulLastAccessedIdx )
+        {
+            if ( lIdx <= l->ulLastAccessedIdx )
+            {
+                l->pLastAccessed = NULL;
+                l->ulLastAccessedIdx = -1;
+            }
+        }
+
         /* Find the node before target */
         if ( lIdx <= dllist_size(l) / 2 )
             for (

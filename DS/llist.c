@@ -68,6 +68,12 @@ int llist_insertAtFirst(List *l, void *item, int nItemSize, void *(* allocate)(s
 
         l->lSize++;
 
+        if ( l->pLastAccessed || ~l->ulLastAccessedIdx )
+        {
+            l->pLastAccessed = NULL;
+            l->ulLastAccessedIdx = -1;
+        }
+
         return 1;
     }
 
@@ -91,6 +97,15 @@ int llist_insertAt(List *l, size_t lIdx, void *item, int nItemSize, void *(* all
         /* Build the node and return if built failed */
         if ( !(node = build_node(item, nItemSize, allocate, deallocate, print, compare)) )
             return 0;
+
+        if ( l->pLastAccessed || ~l->ulLastAccessedIdx )
+        {
+            if ( lIdx <= l->ulLastAccessedIdx )
+            {
+                l->pLastAccessed = NULL;
+                l->ulLastAccessedIdx = -1;
+            }
+        }
 
         /* Move to the item before the target */
         for (
@@ -151,10 +166,15 @@ void *llist_getitemAt(List *l, size_t lIdx)
         return l->last->data;
 
     else {
-        if ( l->pLastAccessed && l->ulLastAccessedIdx == lIdx-1 ) {
-            l->ulLastAccessedIdx++;
-            l->pLastAccessed = l->pLastAccessed->next;
-            return l->pLastAccessed->data;
+        if ( l->pLastAccessed ) {
+            if ( l->ulLastAccessedIdx == lIdx )
+                return l->pLastAccessed->data;
+
+            else if ( l->ulLastAccessedIdx == lIdx-1 ) {
+                l->ulLastAccessedIdx++;
+                l->pLastAccessed = l->pLastAccessed->next;
+                return l->pLastAccessed->data;
+            }
         }
 
         l->ulLastAccessedIdx = lIdx;
@@ -178,6 +198,12 @@ int llist_delete(List *l)
 
     if ( llist_empty(l) )
         return 0;
+
+    if ( l->pLastAccessed || ~l->ulLastAccessedIdx )
+    {
+        l->pLastAccessed = NULL;
+        l->ulLastAccessedIdx = -1;
+    }
 
     if ( llist_size(l) == 1 ) {
         destroy_node( l->first );
@@ -210,6 +236,12 @@ int llist_deleteAtFirst(List *l)
     if ( llist_empty(l) )
         return 0;
 
+    if ( l->pLastAccessed || ~l->ulLastAccessedIdx )
+    {
+        l->pLastAccessed = NULL;
+        l->ulLastAccessedIdx = -1;
+    }
+
     /* if there is only one item */
     if ( llist_size(l) == 1 ) {
         destroy_node( l->first );
@@ -241,6 +273,15 @@ int llist_deleteAt(List *l, size_t lIdx)
         return llist_delete(l);
 
     else {
+        if ( l->pLastAccessed || ~l->ulLastAccessedIdx )
+        {
+            if ( lIdx <= l->ulLastAccessedIdx )
+            {
+                l->pLastAccessed = NULL;
+                l->ulLastAccessedIdx = -1;
+            }
+        }
+
         /* Move to the node before target */
         for (
             prev = l->first; 
@@ -316,6 +357,12 @@ void llist_reverse(List *l)
 
     l->first = prev;
     
+    if ( l->pLastAccessed || ~l->ulLastAccessedIdx )
+    {
+        l->pLastAccessed = NULL;
+        l->ulLastAccessedIdx = -1;
+    }
+
 }
 
 void llist_clear(List *l)
