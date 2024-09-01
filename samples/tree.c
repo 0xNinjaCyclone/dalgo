@@ -1,5 +1,5 @@
 /*
-    Non-Binary Tree Sample
+    General Tree Sample
     
     Author      => Abdallah Mohamed Elsharif
     Date        => 25-07-2024

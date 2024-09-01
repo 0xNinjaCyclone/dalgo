@@ -1,5 +1,5 @@
 /*
-    Non-Binary Tree Implementation
+    General Tree Implementation
     
     Author      => Abdallah Mohamed Elsharif
     Date        => 23-07-2024
