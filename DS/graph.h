@@ -61,6 +61,8 @@ Vertex *graph_getbyvalue(Graph *g, void *pValue);
 void graph_print(Graph *g);
 Tree *graph_bfs(Graph *g, size_t ulStart);
 Tree *graph_dfs(Graph *g, size_t ulStart);
+Tree *graph_prim(Graph *g, size_t ulStart);
+size_t *graph_dijkstra(Graph *g, size_t ulStart);
 void graph_cleanup(Graph **g);
 
 int edge_compare(void *e, void *data);

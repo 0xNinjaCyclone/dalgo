@@ -396,6 +396,152 @@ LEAVE:
     return pSpanningTree;
 }
 
+Tree *graph_prim(Graph *g, size_t ulStart)
+{
+    Vertex *pVertex;
+    Edge *pEdge;
+    size_t ulVertcies, ulDist, ulIdx;
+    Tree *pMinSpanningTree = NULL;
+    TreeNode **pNodes = NULL;
+    TreeNode *pTreeNode = NULL;
+    size_t *ulpDist = NULL;
+    size_t *ulpParentIndexes = NULL;
+    bool *pVisited = NULL;
+
+    ulVertcies = graph_vertcies( g );
+
+    if ( ulVertcies == 0 )
+        return NULL;
+
+    if ( !(pVisited = (bool *) calloc(ulVertcies, sizeof(bool))) )
+        goto LEAVE;
+
+    if ( !(pNodes = (TreeNode **) calloc(ulVertcies, sizeof(TreeNode *))) )
+        goto LEAVE;
+
+    if ( !(ulpParentIndexes = (size_t *) calloc(ulVertcies, sizeof(size_t))) )
+        goto LEAVE;
+
+    if ( !(ulpDist = (size_t *) malloc(ulVertcies * sizeof(size_t))) )      
+        goto LEAVE;
+
+    memset( (void *) ulpDist, -1, ulVertcies * sizeof(size_t) );
+
+    pMinSpanningTree = tree_init( sizeof(Vertex), malloc, free, vertex_print, NULL );
+
+    if ( pMinSpanningTree ) {
+        pVertex = graph_getbyindex( g, (~ulStart && ulStart < ulVertcies) ? ulStart : (size_t) rand() % ulVertcies );
+        ulpDist[ pVertex->ulIdx ] = 0;
+
+        while ( pVertex ) {
+            pNodes[ pVertex->ulIdx ] = tree_insert( pMinSpanningTree, pTreeNode, (void *) pVertex );
+
+            if ( pVertex->pEdge ) {
+                ulDist = ulpDist[ pVertex->ulIdx ];
+#ifdef USE_DALGO_STRUCTURES
+                for ( ulIdx = 0; ulIdx < llist_size((List *) pVertex->pEdge); ulIdx++ ) {
+                    pEdge = (Edge *) llist_getitemAt( (List *) pVertex->pEdge, ulIdx );
+#else
+                for ( pEdge = (Edge *) pVertex->pEdge; pEdge; pEdge = pEdge->pNextEdge ) {
+#endif           
+                    if ( pEdge->ulWeight < ulpDist[pEdge->pVertex->ulIdx] ) {
+                        ulpParentIndexes[ pEdge->pVertex->ulIdx ] = pVertex->ulIdx;
+                        ulpDist[ pEdge->pVertex->ulIdx ] = pEdge->ulWeight;
+                    }
+                }
+            }
+
+            pVisited[ pVertex->ulIdx ] = true;
+            pVertex = NULL;
+            ulDist = -1;
+
+            for ( ulIdx = 0; ulIdx < ulVertcies; ulIdx++ ) 
+                if ( !pVisited[ulIdx] && ulDist > ulpDist[ulIdx] ) {
+                    ulDist = ulpDist[ ulIdx ];
+                    pVertex = graph_getbyindex( g, ulIdx );
+                    pTreeNode = pNodes[ ulpParentIndexes[pVertex->ulIdx] ];
+                }
+            
+        }
+    }
+
+LEAVE:
+    if ( pVisited )
+        free( pVisited );
+
+    if ( pNodes )
+        free( pNodes );
+
+    if ( ulpParentIndexes )
+        free( ulpParentIndexes );
+
+    if ( ulpDist )
+        free( ulpDist );
+
+    return pMinSpanningTree;
+}
+
+size_t *graph_dijkstra(Graph *g, size_t ulStart)
+{
+    Vertex *pVertex;
+    Edge *pEdge;
+    size_t ulVertcies, ulCost, ulIdx;
+    size_t *ulpCostTable = NULL;
+    bool *pVisited = NULL;
+    
+    ulVertcies = graph_vertcies( g );
+
+    if ( !(ulVertcies && ulStart < ulVertcies) )
+        return NULL;
+
+    if ( !(pVisited = (bool *) calloc(ulVertcies, sizeof(bool))) )
+        return NULL;
+
+    if ( !(ulpCostTable = (size_t *) malloc(ulVertcies * sizeof(size_t))) )      
+        goto LEAVE;
+
+    memset( (void *) ulpCostTable, -1, ulVertcies * sizeof(size_t) );
+
+    ulpCostTable[ ulStart ] = 0;
+    pVertex = graph_getbyindex( g, ulStart );
+
+    while ( pVertex ) {
+        if ( pVertex->pEdge ) {  
+            ulCost = ulpCostTable[ pVertex->ulIdx ];
+
+#ifdef USE_DALGO_STRUCTURES
+            for ( ulIdx = 0; ulIdx < llist_size((List *) pVertex->pEdge); ulIdx++ ) {
+                pEdge = (Edge *) llist_getitemAt( (List *) pVertex->pEdge, ulIdx );
+#else
+            for ( pEdge = (Edge *) pVertex->pEdge; pEdge; pEdge = pEdge->pNextEdge ) {
+#endif              
+                if ( ulCost + pEdge->ulWeight < ulpCostTable[pEdge->pVertex->ulIdx] ) 
+                    ulpCostTable[ pEdge->pVertex->ulIdx ] = ulCost + pEdge->ulWeight;
+
+            }
+            
+        }
+
+        pVisited[ pVertex->ulIdx ] = true;
+        ulCost = -1;
+        pVertex = NULL;
+
+        for ( ulIdx = 0; ulIdx < ulVertcies; ulIdx++ ) 
+            if ( !pVisited[ulIdx] && ulCost > ulpCostTable[ulIdx] ) {
+                ulCost = ulpCostTable[ ulIdx ];
+                pVertex = graph_getbyindex( g, ulIdx ); 
+            }
+
+    }
+
+
+LEAVE:
+    if ( pVisited )
+        free( pVisited );
+
+    return ulpCostTable;
+}
+
 void graph_cleanup(Graph **g)
 {
     llist_cleanup( &(*g)->pAdjacencyList );
