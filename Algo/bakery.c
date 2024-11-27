@@ -11,12 +11,12 @@ BakeryLock *bakery_init(__uint8_t unMaxThreads)
 {
     BakeryLock *pLock;
 
-    if ( pLock = malloc(sizeof(BakeryLock)) )
+    if ( pLock = (BakeryLock *) malloc(sizeof(BakeryLock)) )
     {
         pLock->unMaxThreads = unMaxThreads;
         pLock->unNumberOfThreads = 0;
 
-        if ( pLock->instances = calloc(pLock->unMaxThreads, sizeof(BakeryThread *)) )
+        if ( pLock->instances = (BakeryThread **) calloc(pLock->unMaxThreads, sizeof(BakeryThread *)) )
             return pLock;
 
         free( pLock );
@@ -29,7 +29,7 @@ bool bakery_register(BakeryLock *pLock, pthread_t id)
 {
     BakeryThread *pThrdInstance;
 
-    if ( pLock->unNumberOfThreads < pLock->unMaxThreads && (pThrdInstance = malloc(sizeof(BakeryThread))) )
+    if ( pLock->unNumberOfThreads < pLock->unMaxThreads && (pThrdInstance = (BakeryThread *) malloc(sizeof(BakeryThread))) )
     {
         pThrdInstance->id = id;
         pThrdInstance->unIndex = pLock->unNumberOfThreads++;
@@ -123,7 +123,10 @@ __int8_t bakery_unlock(BakeryLock *pLock, pthread_t id)
 void bakery_cleanup(BakeryLock **pLock)
 {
     // Get rid of all thread instances
-    for ( BakeryThread **tmp = (*pLock)->instances; (*pLock)->unNumberOfThreads--; free( *tmp++ ) );
+    for ( BakeryThread **tmp = (*pLock)->instances; (*pLock)->unNumberOfThreads--; free(*tmp++) );
+
+    // Release the instances' memory
+    free( (*pLock)->instances );
 
     // Free the lock
     free( *pLock );

@@ -11,12 +11,12 @@ PetersonLock *peterson_init()
 {
     PetersonLock *pLock;
 
-    if ( pLock = malloc(sizeof(PetersonLock)) )
+    if ( pLock = (PetersonLock *) malloc(sizeof(PetersonLock)) )
     {
         pLock->unNumberOfThreads = 0;
         pLock->unTurn = 0;
         
-        if ( pLock->instances = calloc(MAX_PETERSON_THREADS, sizeof(PetersonThread *)) )
+        if ( pLock->instances = (PetersonThread **) calloc(MAX_PETERSON_THREADS, sizeof(PetersonThread *)) )
             return pLock;
 
         free( pLock );
@@ -32,7 +32,7 @@ bool peterson_register(PetersonLock *pLock, pthread_t id)
     if ( pLock->unNumberOfThreads >= MAX_PETERSON_THREADS )
         return false;
 
-    if ( !(pThrdInstance = malloc(sizeof(PetersonThread))) )
+    if ( !(pThrdInstance = (PetersonThread *) malloc(sizeof(PetersonThread))) )
         return false;
 
     pThrdInstance->id = id;
@@ -113,8 +113,11 @@ __int8_t peterson_unlock(PetersonLock *pLock, pthread_t id)
 void peterson_cleanup(PetersonLock **pLock)
 {
     // Get rid of all thread instances
-    for ( PetersonThread **tmp = (*pLock)->instances; (*pLock)->unNumberOfThreads--; free( *tmp++ ) );
+    for ( PetersonThread **tmp = (*pLock)->instances; (*pLock)->unNumberOfThreads--; free(*tmp++) );
 
+    // Release the instances' memory
+    free( (*pLock)->instances );
+    
     // Free the lock
     free( *pLock );
 
