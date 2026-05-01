@@ -91,6 +91,42 @@ TreeNode *tree_insert(Tree *t, TreeNode *pParent, void *data)
     return NULL;
 }
 
+MiniMaxResult tree_minimax(Tree *t, TreeNode *pNode, bool bMax, int (* eval)(void *)) 
+{
+    MiniMaxResult result = { 0 };
+    MiniMaxResult child_result;
+    TreeNode *pChild;
+    int nBest;
+
+    if ( !pNode )
+        pNode = t->pRoot;
+
+    if ( treenode_numofchild(pNode) == 0 ) {
+        result.nScore = eval( pNode->data );
+        return result;
+    }
+
+    nBest = ( bMax ) ? INT_MIN : INT_MAX;
+
+    if ( pNode->pChild ) {
+#ifdef USE_DALGO_STRUCTURES
+        for ( int nIdx = 0; nIdx < llist_size((List *) pNode->pChild); nIdx++ ) {
+            pChild = (TreeNode *) llist_getitemAt( (List *) pNode->pChild, nIdx );
+#else
+        for ( pChild = pNode->pChild; pChild; pChild = pChild->pSibling ) {
+#endif
+            child_result = tree_minimax( t, pChild, !bMax, eval );
+            if ( ((bMax) ? (child_result.nScore > nBest) : (child_result.nScore < nBest)) ) {
+                nBest = child_result.nScore;
+                result.pBest = (TreeNode *) pChild;
+            }
+        }
+    }
+
+    result.nScore = nBest;
+    return result;
+}
+
 TreeNode *tree_find(Tree *t, TreeNode *pParent, void *data)
 {
     TreeNode *pTarget;

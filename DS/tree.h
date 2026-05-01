@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+#include <limits.h>
 
 #include "llist.h"
 
@@ -30,8 +32,14 @@ typedef struct {
     int (* compare)(void *, void *);
 } Tree;
 
+typedef struct {
+    TreeNode *pBest;
+    int nScore;
+} MiniMaxResult;
+
 Tree *tree_init(int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *));
 TreeNode *tree_insert(Tree *t, TreeNode *pParent, void *data);
+MiniMaxResult tree_minimax(Tree *t, TreeNode *pNode, bool bMax, int (* eval)(void *));
 TreeNode *tree_find(Tree *t, TreeNode *pParent, void *data);
 List *tree_findall(Tree *t, TreeNode *pParent, void *data);
 void tree_print(Tree *t);
