@@ -188,6 +188,154 @@ List *tree_findall(Tree *t, TreeNode *pParent, void *data)
     return pTreeNodes;
 }
 
+int tree_height(Tree *t, TreeNode *pParent)
+{
+    TreeNode *pChild;
+    int nMaxHeight, nHeight;
+
+    if ( !pParent )
+        pParent = t->pRoot;
+
+    nMaxHeight = -1;
+
+    if ( pParent->pChild ) {
+#ifdef USE_DALGO_STRUCTURES
+        for ( int nIdx = 0; nIdx < llist_size((List *) pParent->pChild); nIdx++ ) {
+            pChild = (TreeNode *) llist_getitemAt( (List *) pParent->pChild, nIdx );
+#else
+        for ( pChild = pParent->pChild; pChild; pChild = pChild->pSibling ) {
+#endif
+            if ( (nHeight = tree_height(t, pChild)) > nMaxHeight )
+                nMaxHeight = nHeight;
+        }
+    }
+
+    return nMaxHeight + 1;
+}
+
+bool tree_path(Tree *t, TreeNode *pParent, TreeNode *pTarget, List *pPath)
+{
+    TreeNode *pChild;
+
+    if ( !pParent )
+        pParent = t->pRoot;
+
+    if ( !llist_insert(pPath, pParent, sizeof(TreeNode), malloc, free, NULL, NULL) )
+        return false;
+
+    if ( pParent == pTarget )
+        return true;
+
+    if ( pParent->pChild )
+#ifdef USE_DALGO_STRUCTURES
+        for ( int nIdx = 0; nIdx < llist_size((List *) pParent->pChild); nIdx++ ) {
+            pChild = (TreeNode *) llist_getitemAt( (List *) pParent->pChild, nIdx );
+#else
+        for ( pChild = pParent->pChild; pChild; pChild = pChild->pSibling ) {
+#endif
+            if ( tree_path(t, pChild, pTarget, pPath) )
+                return true;
+        }
+
+    /* We took the wrong path */
+    llist_delete( pPath );
+    return false;
+}
+
+bool tree_path_lazy(Tree *t, TreeNode *pTarget, List *pPath)
+{
+    do {
+        if ( !llist_insertAtFirst(pPath, pTarget, sizeof(TreeNode), malloc, free, NULL, NULL) )
+            return false;
+    } while ( pTarget = pTarget->pParent );
+
+    return true;
+}
+
+TreeIter *tree_iter_init(Tree *t, TreeNode *pParent, Order order)
+{
+    TreeIter *pIter;
+
+    if ( !pParent )
+        pParent = t->pRoot;
+
+    if ( pIter = (TreeIter *) malloc(sizeof(TreeIter)) ) {
+        pIter->order = order;
+
+        switch ( pIter->order ) {
+        case PRE_ORDER:
+            if ( pIter->pIter = (Stack *) lstack_init() )
+                lstack_push( (Stack *) pIter->pIter, &pParent, sizeof(TreeNode *), malloc, free, NULL );
+            break;
+
+        case POST_ORDER:
+            if ( pIter->pIter = (Queue *) lqueue_init() )
+                lqueue_en( (Queue *) pIter->pIter, &pParent, sizeof(TreeNode *), malloc, free, NULL );
+            break;
+
+        default:
+            pIter->pIter = NULL;
+            break;
+        }
+
+        if ( !pIter->pIter ) {
+            free( pIter );
+            pIter = NULL;
+        } 
+
+    }
+
+    return pIter;
+}
+
+TreeNode *tree_iter_next(TreeIter *pIter) 
+{
+    TreeNode *pChild, *pNextNode = NULL; 
+
+    if ( pIter->order == PRE_ORDER ) {
+        if ( pNextNode = (TreeNode *) lstack_getitem((Stack *) pIter->pIter) ) {
+            pNextNode = *(TreeNode **) pNextNode;
+            lstack_pop( (Stack *) pIter->pIter );
+        }
+    }
+
+    else if ( pIter->order == POST_ORDER ) {
+        if ( pNextNode = (TreeNode *) lqueue_getitem((Queue *) pIter->pIter) ) {
+            pNextNode = *(TreeNode **) pNextNode;
+            lqueue_de( (Queue *) pIter->pIter );
+        }
+    }
+
+    if ( pNextNode && pNextNode->pChild ) {
+#ifdef USE_DALGO_STRUCTURES
+        for ( int nIdx = 0; nIdx < llist_size((List *) pNextNode->pChild); nIdx++ ) {
+            pChild = (TreeNode *) llist_getitemAt( (List *) pNextNode->pChild, nIdx );
+#else
+        for ( pChild = pNextNode->pChild; pChild; pChild = pChild->pSibling ) {
+#endif
+            if ( pIter->order == PRE_ORDER ) 
+                lstack_push( (Stack *) pIter->pIter, &pChild, sizeof(TreeNode *), malloc, free, NULL );
+
+            else if ( pIter->order == POST_ORDER )
+                lqueue_en( (Queue *) pIter->pIter, &pChild, sizeof(TreeNode *), malloc, free, NULL );
+        }
+    }    
+
+    return pNextNode;
+}
+
+void tree_iter_done(TreeIter **ppIter)
+{
+    if ( (*ppIter)->order == PRE_ORDER ) 
+        lstack_cleanup( (Stack **) &(*ppIter)->pIter );
+
+    else if ( (*ppIter)->order == POST_ORDER )
+        lqueue_cleanup( (Queue **) &(*ppIter)->pIter );
+
+    free( *ppIter );
+    ( *ppIter) = NULL;
+}
+
 void tree_print(Tree *t)
 {
     tree_print2(t, t->pRoot);

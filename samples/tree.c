@@ -3,7 +3,7 @@
     
     Author      => Abdallah Mohamed Elsharif
     Date        => 25-07-2024
-    Compile     => gcc -I../DS/ -I../Algo/ ../Algo/helpers.c ../DS/llist.c ../DS/tree.c tree.c -o tree
+    Compile     => gcc -I../DS/ -I../Algo/ ../Algo/helpers.c ../DS/llist.c ../DS/lstack.c ../DS/lqueue.c ../DS/tree.c tree.c -o tree
     Note        => Use '-DUSE_DALGO_STRUCTURES' to allow the tree to use the dalgo data structures
 */
 
@@ -64,6 +64,7 @@ int main(int argc, char **argv)
 {
     Tree *pTree;
     TreeNode *pGitTreeBranch;
+    List *pPathToGit;
     char cDirName[] = ".git";
 
     if ( argc < 2 )
@@ -75,12 +76,22 @@ int main(int argc, char **argv)
         build_filesystem_tree( pTree, NULL, argv[1] );
         tree_print( pTree );
         printf("[+] Number of Nodes -> %lu\n", pTree->ulSize);
+        printf("[+] Tree Height -> %d\n", tree_height(pTree, NULL));
         if ( pGitTreeBranch = tree_find(pTree, NULL, &cDirName) ) {
             printf("[+] Git branch data -> '%s'\n", *(char **)pGitTreeBranch->data);
             printf("[+] Number of Child -> %d\n", treenode_numofchild(pGitTreeBranch));
+            printf("[+] %s Tree Height -> %d\n", cDirName, tree_height(pTree, pGitTreeBranch));
             puts("------");
             tree_print2( pTree, pGitTreeBranch );
             puts("------");
+            if ( pPathToGit = llist_init() ) {
+                if ( tree_path(pTree, NULL, pGitTreeBranch, pPathToGit) ) {
+                    printf("Path to %s:\n", cDirName);
+                    for ( int nIdx = 0; nIdx < llist_size(pPathToGit); nIdx++ )
+                        printf( "-> %s ", *(char **)((TreeNode *) llist_getitemAt(pPathToGit, nIdx))->data );
+                }
+                llist_cleanup( &pPathToGit );
+            }
         } else {
             printf("[!] Cannot find '%s'\n", cDirName);
         }
