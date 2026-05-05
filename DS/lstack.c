@@ -75,6 +75,9 @@ int lstack_empty(Stack *s)
 
 void *lstack_getitem(Stack *s)
 {
+    if ( lstack_empty(s) )
+        return NULL;
+        
     return s->top->data;
 }
 
