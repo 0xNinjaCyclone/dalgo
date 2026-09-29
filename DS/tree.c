@@ -32,64 +32,68 @@ TreeNode *tree_insert(Tree *t, TreeNode *pParent, void *data)
     if ( pParent && t->ulSize == 0 )
         return NULL;
 
-    if ( pNewNode = (TreeNode *) malloc(sizeof(TreeNode)) )
+    if ( pTemp = tree_node_create(t, data) )
     {
-        if ( pNewNode->data = t->allocate(t->nItemSize) )
-        {
-            memcpy(pNewNode->data, data, t->nItemSize);
-            pNewNode->pParent = pParent;
-            pNewNode->pChild = NULL;
-            pNewNode->deallocate = t->deallocate;
-#ifndef USE_DALGO_STRUCTURES
-            pNewNode->pSibling = NULL;
-            pNewNode->nChild = 0;
-#endif
-
-            if ( !t->pRoot ) {
-                t->pRoot = pNewNode;
-                t->ulSize++;
-                return t->pRoot;
-            }
-
-            if ( !pParent )
-                pParent = t->pRoot;
-
-#ifdef USE_DALGO_STRUCTURES
-            if ( !pParent->pChild )
-                pParent->pChild = (void *) llist_init();
-
-            if ( pParent->pChild )
-                if ( llist_insert((List *)pParent->pChild, pNewNode, sizeof(TreeNode), malloc, tree_free, NULL, NULL) )
-                {
-                    free( pNewNode );
-                    t->ulSize++;
-                    return (TreeNode *) llist_getitemAt( (List *)pParent->pChild, llist_size((List *)pParent->pChild)-1 );
-                }
-            
-#else
-            if ( pTemp = (TreeNode *) pParent->pChild ) {
-                while ( pTemp->pSibling )
-                    pTemp = pTemp->pSibling;
-            
-                pTemp->pSibling = pNewNode;
-            }
-
-            else {
-                pParent->pChild = (void *) pNewNode;
-            }
-
-            t->ulSize++;
-            pParent->nChild++;
-
+        if ( pNewNode = tree_insert2(t, pParent, pTemp) )
             return pNewNode;
-#endif
-        }
 
-        free( pNewNode );
+        tree_free( (void *) pTemp );
     }
 
     return NULL;
 }
+
+TreeNode *tree_insert2(Tree *t, TreeNode *pParent, TreeNode *pNewNode) 
+{
+    TreeNode *pTemp;
+
+    if ( pParent && t->ulSize == 0 )
+        return NULL;
+
+    pNewNode->pParent = pParent;
+
+    if ( !t->pRoot ) {
+        t->pRoot = pNewNode;
+        t->ulSize++;
+        return t->pRoot;
+    }
+
+    if ( !pParent )
+        pParent = t->pRoot;
+
+#ifdef USE_DALGO_STRUCTURES
+    if ( !pParent->pChild )
+        pParent->pChild = (void *) llist_init();
+
+    if ( pParent->pChild )
+        if ( llist_insert((List *)pParent->pChild, pNewNode, sizeof(TreeNode), malloc, tree_free, NULL, NULL) )
+        {
+            free( pNewNode );
+            t->ulSize++;
+            return (TreeNode *) llist_getitemAt( (List *)pParent->pChild, llist_size((List *)pParent->pChild)-1 );
+        }
+    
+    return NULL;
+#else
+    if ( pTemp = (TreeNode *) pParent->pChild ) {
+        while ( pTemp->pSibling )
+            pTemp = pTemp->pSibling;
+    
+        pTemp->pSibling = pNewNode;
+    }
+
+    else {
+        pParent->pChild = (void *) pNewNode;
+    }
+
+    t->ulSize++;
+    pParent->nChild++;
+
+    return pNewNode;
+#endif
+    
+}
+
 
 MiniMaxResult tree_minimax(Tree *t, TreeNode *pNode, bool bMax, int (* eval)(void *)) 
 {
@@ -334,6 +338,30 @@ void tree_iter_done(TreeIter **ppIter)
 
     free( *ppIter );
     ( *ppIter) = NULL;
+}
+
+TreeNode *tree_node_create(Tree *t, void *data) {
+    TreeNode *pNewNode;
+
+    if ( pNewNode = (TreeNode *) malloc(sizeof(TreeNode)) )
+    {
+        if ( pNewNode->data = t->allocate(t->nItemSize) )
+        {
+            memcpy( pNewNode->data, data, t->nItemSize );
+            pNewNode->pParent = NULL;
+            pNewNode->pChild = NULL;
+            pNewNode->deallocate = t->deallocate;
+#ifndef USE_DALGO_STRUCTURES
+            pNewNode->pSibling = NULL;
+            pNewNode->nChild = 0;
+#endif
+            return pNewNode;
+        }
+
+        free( pNewNode );
+    }
+
+    return NULL;
 }
 
 void tree_print(Tree *t)

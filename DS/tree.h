@@ -51,6 +51,7 @@ typedef struct {
 
 Tree *tree_init(int nItemSize, void *(* allocate)(size_t), void (* deallocate)(void *), void (* print)(void *), int (* compare)(void *, void *));
 TreeNode *tree_insert(Tree *t, TreeNode *pParent, void *data);
+TreeNode *tree_insert2(Tree *t, TreeNode *pParent, TreeNode *pNewNode);
 MiniMaxResult tree_minimax(Tree *t, TreeNode *pNode, bool bMax, int (* eval)(void *));
 TreeNode *tree_find(Tree *t, TreeNode *pParent, void *data);
 List *tree_findall(Tree *t, TreeNode *pParent, void *data);
@@ -60,11 +61,13 @@ bool tree_path_lazy(Tree *t, TreeNode *pTarget, List *pPath);
 TreeIter *tree_iter_init(Tree *t, TreeNode *pParent, Order order);
 TreeNode *tree_iter_next(TreeIter *pIter);
 void tree_iter_done(TreeIter **ppIter);
+TreeNode *tree_node_create(Tree *t, void *data);
 void tree_print(Tree *t);
 void tree_print2(Tree *t, TreeNode *node);
 void tree_free(void *ptr);
 void tree_cleanup(Tree **t);
 
 int treenode_numofchild(TreeNode *pParent);
+
 
 #endif
